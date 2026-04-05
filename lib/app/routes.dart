@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../features/hangar/presentation/hangar_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import 'game_page.dart';
@@ -10,10 +11,12 @@ class AppRoutes {
   static const String home = '/';
   static const String settings = '/settings';
   static const String game = '/game';
+  static const String hangar = '/hangar';
 
   static Map<String, WidgetBuilder> get routes => {
     home: (_) => const HomeScreen(),
     settings: (_) => const SettingsScreen(),
     game: (_) => const GamePage(),
+    hangar: (_) => const HangarScreen(),
   };
 }

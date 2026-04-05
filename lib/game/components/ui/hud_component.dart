@@ -50,7 +50,7 @@ class HudComponent extends PositionComponent with HasGameReference<GalaxyGame> {
       bgPaint,
     );
 
-    final hpRatio = (game.hp / 5).clamp(0.0, 1.0);
+    final hpRatio = (game.hp / game.shipStats.maxHp).clamp(0.0, 1.0);
     final fillColor = hpRatio > 0.5
         ? const Color(0xFF69F0AE)
         : hpRatio > 0.25

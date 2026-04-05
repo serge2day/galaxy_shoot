@@ -3,33 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:galaxy_shoot/app/providers.dart';
 import 'package:galaxy_shoot/app/theme/app_theme.dart';
-import 'package:galaxy_shoot/features/settings/domain/game_settings.dart';
-import 'package:galaxy_shoot/features/settings/domain/settings_repository.dart';
 import 'package:galaxy_shoot/features/settings/presentation/settings_screen.dart';
-import 'package:galaxy_shoot/features/high_score/domain/high_score_repository.dart';
 
-class FakeSettingsRepository implements SettingsRepository {
-  GameSettings _settings = const GameSettings();
-
-  @override
-  Future<GameSettings> load() async => _settings;
-
-  @override
-  Future<void> save(GameSettings settings) async => _settings = settings;
-}
-
-class FakeHighScoreRepository implements HighScoreRepository {
-  @override
-  Future<int> getBestScore() async => 0;
-  @override
-  Future<void> saveBestScore(int score) async {}
-}
+import '../helpers/test_helpers.dart';
 
 Widget _buildApp() {
   return ProviderScope(
     overrides: [
       settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       highScoreRepositoryProvider.overrideWithValue(FakeHighScoreRepository()),
+      progressionRepositoryProvider.overrideWithValue(
+        FakeProgressionRepository(),
+      ),
+      shipCatalogRepositoryProvider.overrideWithValue(
+        FakeShipCatalogRepository(),
+      ),
     ],
     child: MaterialApp(theme: AppTheme.darkTheme, home: const SettingsScreen()),
   );
@@ -54,7 +42,6 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Manual Fire'));
     await tester.pumpAndSettle();
-    // Manual Fire option should now be selected (checked icon)
     final manualIcons = find.byIcon(Icons.radio_button_checked);
     expect(manualIcons, findsOneWidget);
   });

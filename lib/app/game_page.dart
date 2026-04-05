@@ -2,6 +2,12 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/hangar/domain/resolved_ship_stats.dart';
+import '../features/hangar/domain/ship_definition.dart';
+import '../features/progression/domain/difficulty_tier.dart';
+import '../features/progression/domain/reward_calculator.dart';
+import '../features/progression/presentation/difficulty_select_screen.dart';
+import '../features/progression/presentation/run_summary_screen.dart';
 import '../features/session/domain/run_result.dart';
 import '../game/galaxy_game.dart';
 import 'providers.dart';
@@ -17,29 +23,94 @@ class GamePage extends ConsumerStatefulWidget {
 
 class _GamePageState extends ConsumerState<GamePage> {
   GalaxyGame? _game;
-  RunResult? _result;
+  RunSummaryData? _summaryData;
+  DifficultyTier _difficulty = DifficultyTier.normal;
+  bool _difficultySelected = false;
+  bool _showPause = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _selectDifficulty();
+    });
+  }
+
+  Future<void> _selectDifficulty() async {
+    final tier = await Navigator.of(context).push<DifficultyTier>(
+      MaterialPageRoute(builder: (_) => const DifficultySelectScreen()),
+    );
+    if (tier == null) {
+      if (mounted) Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+      return;
+    }
+    setState(() {
+      _difficulty = tier;
+      _difficultySelected = true;
+    });
     _initGame();
   }
 
   void _initGame() {
     final fireMode = ref.read(gameSettingsProvider).fireMode;
-    _game = GalaxyGame(fireMode: fireMode, onGameEnd: _onGameEnd);
+    final shipDef = ref.read(selectedShipDefinitionProvider);
+    final upgrades = ref.read(upgradeStateProvider);
+    final stats = ResolvedShipStats.resolve(ship: shipDef, upgrades: upgrades);
+
+    _game = GalaxyGame(
+      fireMode: fireMode,
+      shipStats: stats,
+      difficulty: _difficulty,
+      shipId: shipDef.id,
+      onGameEnd: _onGameEnd,
+      onPauseRequested: _handlePauseRequest,
+    );
+    setState(() {
+      _summaryData = null;
+      _showPause = false;
+    });
+  }
+
+  void _handlePauseRequest() {
+    if (_game?.state == GameState.playing) {
+      _game?.pause();
+      setState(() => _showPause = true);
+    }
   }
 
   void _onGameEnd(RunResult result) {
-    ref.read(bestScoreProvider.notifier).submit(result.score);
+    final claimedResult = _game?.claimResult();
+    if (claimedResult == null) return;
+
+    final previousBest = ref.read(bestScoreProvider);
+    ref.read(bestScoreProvider.notifier).submit(claimedResult.score);
+
+    final rewards = RewardCalculator.calculate(
+      enemyKills: claimedResult.enemyKills,
+      bossDefeated: claimedResult.bossDefeated,
+      isVictory: claimedResult.outcome == RunOutcome.victory,
+      difficulty: _difficulty,
+    );
+
+    ref.read(walletProvider.notifier).addCredits(rewards.totalCredits);
+
+    final shipDef = ShipCatalog.getById(_game!.shipId);
+
     setState(() {
-      _result = result;
+      _summaryData = RunSummaryData(
+        result: claimedResult,
+        rewards: rewards,
+        difficulty: _difficulty,
+        shipName: shipDef.displayName,
+        previousBestScore: previousBest,
+        newBestScore: ref.read(bestScoreProvider),
+      );
     });
   }
 
   void _restart() {
     setState(() {
-      _result = null;
+      _summaryData = null;
       _initGame();
     });
   }
@@ -48,155 +119,114 @@ class _GamePageState extends ConsumerState<GamePage> {
     Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
 
+  void _goHangar() {
+    Navigator.of(context).pushReplacementNamed(AppRoutes.hangar);
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_difficultySelected) {
+      return const Scaffold(
+        backgroundColor: AppTheme.bgDark,
+        body: SizedBox.shrink(),
+      );
+    }
+
+    if (_summaryData != null) {
+      return RunSummaryScreen(
+        data: _summaryData!,
+        onPlayAgain: _restart,
+        onHome: _goHome,
+        onHangar: _goHangar,
+      );
+    }
+
     return Scaffold(
       body: Stack(
         children: [
           if (_game != null) GameWidget(game: _game!),
           // Pause button
-          if (_result == null)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
-              right: 8,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.pause,
-                  color: AppTheme.textSecondary,
-                  size: 28,
-                ),
-                onPressed: () {
-                  if (_game?.state == GameState.playing) {
-                    _game?.pause();
-                    _showPauseDialog();
-                  }
-                },
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 8,
+            child: IconButton(
+              icon: const Icon(
+                Icons.pause,
+                color: AppTheme.textSecondary,
+                size: 28,
               ),
+              onPressed: _handlePauseRequest,
             ),
-          // Game Over / Victory overlay
-          if (_result != null) _buildEndOverlay(),
+          ),
+          // Pause overlay
+          if (_showPause) _buildPauseOverlay(),
         ],
       ),
     );
   }
 
-  void _showPauseDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.bgCard,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
-        ),
-        title: const Text(
-          'PAUSED',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppTheme.primaryColor, letterSpacing: 2),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _game?.resume();
-            },
-            child: const Text(
-              'RESUME',
-              style: TextStyle(color: AppTheme.primaryColor),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _goHome();
-            },
-            child: const Text(
-              'QUIT',
-              style: TextStyle(color: AppTheme.dangerColor),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEndOverlay() {
-    final isVictory = _result!.outcome == RunOutcome.victory;
+  Widget _buildPauseOverlay() {
     return Container(
       color: Colors.black54,
       child: SafeArea(
         child: Center(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 32),
-            padding: const EdgeInsets.all(32),
+            margin: const EdgeInsets.symmetric(horizontal: 40),
+            padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               color: AppTheme.bgCard,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isVictory
-                    ? AppTheme.successColor.withValues(alpha: 0.5)
-                    : AppTheme.dangerColor.withValues(alpha: 0.5),
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color:
-                      (isVictory ? AppTheme.successColor : AppTheme.dangerColor)
-                          .withValues(alpha: 0.2),
-                  blurRadius: 30,
-                  spreadRadius: 5,
-                ),
-              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  isVictory ? 'VICTORY' : 'GAME OVER',
+                const Text(
+                  'PAUSED',
                   style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 3,
-                    color: isVictory
-                        ? AppTheme.successColor
-                        : AppTheme.dangerColor,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'SCORE',
-                  style: TextStyle(
-                    fontSize: 12,
-                    letterSpacing: 2,
-                    color: AppTheme.textSecondary.withValues(alpha: 0.7),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${_result!.score}',
-                  style: const TextStyle(
-                    fontSize: 36,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.primaryColor,
+                    letterSpacing: 2,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _restart,
-                    child: const Text('PLAY AGAIN'),
+                    onPressed: () {
+                      setState(() => _showPause = false);
+                      _game?.resume();
+                    },
+                    child: const Text('RESUME'),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setState(() => _showPause = false);
+                      _restart();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primaryColor,
+                      side: const BorderSide(color: AppTheme.primaryColor),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('RESTART'),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 TextButton(
                   onPressed: _goHome,
                   child: const Text(
                     'HOME',
                     style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      letterSpacing: 1.5,
+                      color: AppTheme.dangerColor,
+                      letterSpacing: 1,
                     ),
                   ),
                 ),

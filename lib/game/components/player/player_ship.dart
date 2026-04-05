@@ -5,6 +5,8 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
 import '../../../core/config/game_balance.dart';
+import '../../../features/hangar/domain/ship_definition.dart';
+import '../../../features/hangar/domain/ship_stats.dart';
 import '../../galaxy_game.dart';
 import '../enemies/enemy_ship.dart';
 import '../projectiles/enemy_bullet.dart';
@@ -12,12 +14,14 @@ import 'player_weapon.dart';
 
 class PlayerShip extends PositionComponent
     with CollisionCallbacks, HasGameReference<GalaxyGame> {
-  final PlayerWeapon weapon = PlayerWeapon();
+  late final PlayerWeapon weapon;
+  final ShipStats stats;
+  final ShipVisualStyle visualStyle;
 
-  int _hp = GameBalance.playerMaxHp;
+  late int _hp;
   int get hp => _hp;
 
-  int _lives = GameBalance.playerStartingLives;
+  late int _lives;
   int get lives => _lives;
 
   bool _invulnerable = false;
@@ -28,19 +32,28 @@ class PlayerShip extends PositionComponent
 
   Vector2? _dragTarget;
 
-  PlayerShip()
+  PlayerShip({required this.stats, this.visualStyle = ShipVisualStyle.balanced})
     : super(
-        size: Vector2(
-          GameBalance.playerShipWidth,
-          GameBalance.playerShipHeight,
-        ),
+        size: Vector2(stats.shipWidth, stats.shipHeight),
         anchor: Anchor.center,
-      );
+      ) {
+    _hp = stats.maxHp;
+    _lives = stats.startingLives;
+    weapon = PlayerWeapon(
+      cooldown: stats.fireCooldown,
+      damage: stats.bulletDamage,
+    );
+  }
 
   @override
   Future<void> onLoad() async {
     add(weapon);
-    add(RectangleHitbox(size: size * 0.7, position: size * 0.15));
+    add(
+      RectangleHitbox(
+        size: size * stats.hitboxScale,
+        position: size * ((1 - stats.hitboxScale) / 2),
+      ),
+    );
     game.setHp(_hp);
     game.setLives(_lives);
   }
@@ -71,13 +84,11 @@ class PlayerShip extends PositionComponent
       final diff = _dragTarget! - position;
       final dist = diff.length;
       if (dist > 2) {
-        final move =
-            diff.normalized() * min(GameBalance.playerSpeed * dt, dist);
+        final move = diff.normalized() * min(stats.speed * dt, dist);
         position.add(move);
       }
     }
 
-    // Clamp to bounds
     final gameSize = game.size;
     final halfW = size.x / 2;
     final halfH = size.y / 2;
@@ -88,19 +99,30 @@ class PlayerShip extends PositionComponent
   @override
   void render(Canvas canvas) {
     if (!_visible) return;
+    switch (visualStyle) {
+      case ShipVisualStyle.balanced:
+        _renderBalanced(canvas);
+        break;
+      case ShipVisualStyle.swift:
+        _renderSwift(canvas);
+        break;
+      case ShipVisualStyle.heavy:
+        _renderHeavy(canvas);
+        break;
+    }
+  }
 
+  void _renderBalanced(Canvas canvas) {
     final w = size.x;
     final h = size.y;
 
-    // Ship glow
     final glowPaint = Paint()
       ..color = const Color(0x2000E5FF)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
     canvas.drawCircle(Offset(w / 2, h / 2), w * 0.6, glowPaint);
 
-    // Ship body
     final bodyPath = Path()
-      ..moveTo(w / 2, 0) // nose
+      ..moveTo(w / 2, 0)
       ..lineTo(w * 0.85, h * 0.7)
       ..lineTo(w, h)
       ..lineTo(w * 0.6, h * 0.75)
@@ -108,25 +130,93 @@ class PlayerShip extends PositionComponent
       ..lineTo(0, h)
       ..lineTo(w * 0.15, h * 0.7)
       ..close();
+    canvas.drawPath(bodyPath, Paint()..color = const Color(0xFF00B8D4));
 
-    final bodyPaint = Paint()..color = const Color(0xFF00B8D4);
-    canvas.drawPath(bodyPath, bodyPaint);
-
-    // Highlight stripe
     final stripePath = Path()
       ..moveTo(w / 2, h * 0.1)
       ..lineTo(w * 0.6, h * 0.65)
       ..lineTo(w * 0.4, h * 0.65)
       ..close();
-    final stripePaint = Paint()..color = const Color(0xFF00E5FF);
-    canvas.drawPath(stripePath, stripePaint);
+    canvas.drawPath(stripePath, Paint()..color = const Color(0xFF00E5FF));
 
-    // Engine glow
     final enginePaint = Paint()
       ..color = const Color(0xFFFF9100)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas.drawCircle(Offset(w * 0.35, h * 0.85), 3, enginePaint);
     canvas.drawCircle(Offset(w * 0.65, h * 0.85), 3, enginePaint);
+  }
+
+  void _renderSwift(Canvas canvas) {
+    final w = size.x;
+    final h = size.y;
+
+    final glowPaint = Paint()
+      ..color = const Color(0x2000FF88)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+    canvas.drawCircle(Offset(w / 2, h / 2), w * 0.5, glowPaint);
+
+    // Sleek narrow shape
+    final bodyPath = Path()
+      ..moveTo(w / 2, 0)
+      ..lineTo(w * 0.9, h * 0.6)
+      ..lineTo(w * 0.75, h)
+      ..lineTo(w * 0.55, h * 0.7)
+      ..lineTo(w * 0.45, h * 0.7)
+      ..lineTo(w * 0.25, h)
+      ..lineTo(w * 0.1, h * 0.6)
+      ..close();
+    canvas.drawPath(bodyPath, Paint()..color = const Color(0xFF00C853));
+
+    final stripePath = Path()
+      ..moveTo(w / 2, h * 0.05)
+      ..lineTo(w * 0.58, h * 0.55)
+      ..lineTo(w * 0.42, h * 0.55)
+      ..close();
+    canvas.drawPath(stripePath, Paint()..color = const Color(0xFF69F0AE));
+
+    final enginePaint = Paint()
+      ..color = const Color(0xFF00E5FF)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    canvas.drawCircle(Offset(w * 0.4, h * 0.85), 2.5, enginePaint);
+    canvas.drawCircle(Offset(w * 0.6, h * 0.85), 2.5, enginePaint);
+  }
+
+  void _renderHeavy(Canvas canvas) {
+    final w = size.x;
+    final h = size.y;
+
+    final glowPaint = Paint()
+      ..color = const Color(0x20FF9100)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+    canvas.drawCircle(Offset(w / 2, h / 2), w * 0.6, glowPaint);
+
+    // Wide bulky shape
+    final bodyPath = Path()
+      ..moveTo(w / 2, 0)
+      ..lineTo(w * 0.95, h * 0.5)
+      ..lineTo(w, h * 0.85)
+      ..lineTo(w * 0.7, h)
+      ..lineTo(w * 0.3, h)
+      ..lineTo(0, h * 0.85)
+      ..lineTo(w * 0.05, h * 0.5)
+      ..close();
+    canvas.drawPath(bodyPath, Paint()..color = const Color(0xFFE65100));
+
+    final corePath = Path()
+      ..moveTo(w / 2, h * 0.1)
+      ..lineTo(w * 0.7, h * 0.5)
+      ..lineTo(w * 0.65, h * 0.85)
+      ..lineTo(w * 0.35, h * 0.85)
+      ..lineTo(w * 0.3, h * 0.5)
+      ..close();
+    canvas.drawPath(corePath, Paint()..color = const Color(0xFFFF9100));
+
+    final enginePaint = Paint()
+      ..color = const Color(0xFFFF5252)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    canvas.drawCircle(Offset(w * 0.3, h * 0.92), 4, enginePaint);
+    canvas.drawCircle(Offset(w * 0.5, h * 0.95), 4, enginePaint);
+    canvas.drawCircle(Offset(w * 0.7, h * 0.92), 4, enginePaint);
   }
 
   @override
@@ -156,7 +246,7 @@ class PlayerShip extends PositionComponent
       if (_lives <= 0) {
         game.triggerGameOver();
       } else {
-        _hp = GameBalance.playerMaxHp;
+        _hp = stats.maxHp;
         game.setHp(_hp);
         _startInvulnerability();
       }

@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 
+import '../../features/hangar/domain/ship_definition.dart';
 import '../../features/settings/domain/fire_mode.dart';
 import '../components/background/starfield_component.dart';
 import '../components/boss/boss_health_bar.dart';
@@ -24,26 +27,27 @@ class GalaxyWorld extends Component
   int _nextWaveIndex = 0;
   bool _bossSpawned = false;
   late List<SpawnEvent> _waves;
+  final Random _rng = Random();
 
   GalaxyWorld({required this.game});
 
   @override
   Future<void> onLoad() async {
-    _waves = SpawnTimeline.buildLevel1();
+    _waves = SpawnTimeline.buildLevel1(seed: _rng.nextInt(1000));
 
-    // Background
     await add(StarfieldComponent());
 
-    // Player ship
-    player = PlayerShip();
+    final shipDef = ShipCatalog.getById(game.shipId);
+    player = PlayerShip(
+      stats: game.shipStats,
+      visualStyle: shipDef.visualStyle,
+    );
     player.position = Vector2(game.size.x / 2, game.size.y * 0.8);
     await add(player);
 
-    // HUD
     hud = HudComponent();
     await add(hud);
 
-    // Fire button for manual mode
     if (game.fireMode == FireMode.manual) {
       await add(FireButtonComponent(player: player));
     }
@@ -57,19 +61,16 @@ class GalaxyWorld extends Component
 
     _levelTimer += dt;
 
-    // Auto fire
     if (game.fireMode == FireMode.auto) {
       player.weapon.fire();
     }
 
-    // Spawn waves
     while (_nextWaveIndex < _waves.length &&
         _levelTimer >= _waves[_nextWaveIndex].time) {
       _spawnWave(_waves[_nextWaveIndex]);
       _nextWaveIndex++;
     }
 
-    // Spawn boss
     if (!_bossSpawned && _levelTimer >= SpawnTimeline.bossSpawnTime) {
       _spawnBoss();
       _bossSpawned = true;

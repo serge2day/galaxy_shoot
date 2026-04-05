@@ -11,6 +11,8 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bestScore = ref.watch(bestScoreProvider);
+    final wallet = ref.watch(walletProvider);
+    final shipDef = ref.watch(selectedShipDefinitionProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -25,10 +27,12 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 _buildSubtitle(),
                 const Spacer(),
-                _buildBestScore(bestScore),
-                const SizedBox(height: 40),
+                _buildInfoRow(bestScore, wallet.credits, shipDef.displayName),
+                const SizedBox(height: 32),
                 _buildNewGameButton(context),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                _buildHangarButton(context),
+                const SizedBox(height: 12),
                 _buildSettingsButton(context),
                 const Spacer(flex: 2),
               ],
@@ -60,7 +64,7 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildSubtitle() {
     return Text(
-      'PHASE 1',
+      'PHASE 2',
       style: TextStyle(
         fontSize: 14,
         letterSpacing: 6,
@@ -69,35 +73,48 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBestScore(int score) {
+  Widget _buildInfoRow(int bestScore, int credits, String shipName) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
         color: AppTheme.bgCard.withValues(alpha: 0.5),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text(
-            'BEST SCORE',
-            style: TextStyle(
-              fontSize: 12,
-              letterSpacing: 2,
-              color: AppTheme.textSecondary.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '$score',
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primaryColor,
-            ),
-          ),
+          _infoColumn('BEST', '$bestScore'),
+          Container(width: 1, height: 30, color: Colors.white12),
+          _infoColumn('CREDITS', '$credits'),
+          Container(width: 1, height: 30, color: Colors.white12),
+          _infoColumn('SHIP', shipName),
         ],
       ),
+    );
+  }
+
+  Widget _infoColumn(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            letterSpacing: 1.5,
+            color: AppTheme.textSecondary.withValues(alpha: 0.6),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryColor,
+          ),
+        ),
+      ],
     );
   }
 
@@ -108,6 +125,26 @@ class HomeScreen extends ConsumerWidget {
         onPressed: () =>
             Navigator.of(context).pushReplacementNamed(AppRoutes.game),
         child: const Text('NEW GAME'),
+      ),
+    );
+  }
+
+  Widget _buildHangarButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () => Navigator.of(context).pushNamed(AppRoutes.hangar),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppTheme.accentColor,
+          side: const BorderSide(color: AppTheme.accentColor),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          textStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.0,
+          ),
+        ),
+        child: const Text('HANGAR'),
       ),
     );
   }

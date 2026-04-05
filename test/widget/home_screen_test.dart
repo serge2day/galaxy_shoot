@@ -5,33 +5,8 @@ import 'package:galaxy_shoot/app/providers.dart';
 import 'package:galaxy_shoot/app/routes.dart';
 import 'package:galaxy_shoot/app/theme/app_theme.dart';
 import 'package:galaxy_shoot/features/home/presentation/home_screen.dart';
-import 'package:galaxy_shoot/features/settings/domain/game_settings.dart';
-import 'package:galaxy_shoot/features/settings/domain/settings_repository.dart';
-import 'package:galaxy_shoot/features/high_score/domain/high_score_repository.dart';
 
-class FakeSettingsRepository implements SettingsRepository {
-  GameSettings _settings = const GameSettings();
-
-  @override
-  Future<GameSettings> load() async => _settings;
-
-  @override
-  Future<void> save(GameSettings settings) async => _settings = settings;
-}
-
-class FakeHighScoreRepository implements HighScoreRepository {
-  int _score = 0;
-
-  FakeHighScoreRepository([this._score = 0]);
-
-  @override
-  Future<int> getBestScore() async => _score;
-
-  @override
-  Future<void> saveBestScore(int score) async {
-    if (score > _score) _score = score;
-  }
-}
+import '../helpers/test_helpers.dart';
 
 Widget _buildApp({int bestScore = 0}) {
   return ProviderScope(
@@ -40,6 +15,12 @@ Widget _buildApp({int bestScore = 0}) {
       highScoreRepositoryProvider.overrideWithValue(
         FakeHighScoreRepository(bestScore),
       ),
+      progressionRepositoryProvider.overrideWithValue(
+        FakeProgressionRepository(),
+      ),
+      shipCatalogRepositoryProvider.overrideWithValue(
+        FakeShipCatalogRepository(),
+      ),
     ],
     child: MaterialApp(
       theme: AppTheme.darkTheme,
@@ -47,6 +28,7 @@ Widget _buildApp({int bestScore = 0}) {
       routes: {
         AppRoutes.settings: (_) => const Scaffold(body: Text('Settings')),
         AppRoutes.game: (_) => const Scaffold(body: Text('Game')),
+        AppRoutes.hangar: (_) => const Scaffold(body: Text('Hangar')),
       },
     ),
   );
@@ -71,16 +53,22 @@ void main() {
     expect(find.text('SETTINGS'), findsOneWidget);
   });
 
-  testWidgets('displays BEST SCORE label', (tester) async {
+  testWidgets('displays HANGAR button', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    expect(find.text('BEST SCORE'), findsOneWidget);
+    expect(find.text('HANGAR'), findsOneWidget);
   });
 
-  testWidgets('displays best score value', (tester) async {
-    await tester.pumpWidget(_buildApp(bestScore: 0));
+  testWidgets('displays credits', (tester) async {
+    await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    expect(find.text('0'), findsOneWidget);
+    expect(find.text('CREDITS'), findsOneWidget);
+  });
+
+  testWidgets('displays selected ship name', (tester) async {
+    await tester.pumpWidget(_buildApp());
+    await tester.pumpAndSettle();
+    expect(find.text('Vanguard'), findsOneWidget);
   });
 
   testWidgets('navigates to settings when button tapped', (tester) async {
@@ -91,11 +79,11 @@ void main() {
     expect(find.text('Settings'), findsOneWidget);
   });
 
-  testWidgets('navigates to game when NEW GAME tapped', (tester) async {
+  testWidgets('navigates to hangar when button tapped', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('NEW GAME'));
+    await tester.tap(find.text('HANGAR'));
     await tester.pumpAndSettle();
-    expect(find.text('Game'), findsOneWidget);
+    expect(find.text('Hangar'), findsOneWidget);
   });
 }

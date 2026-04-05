@@ -1,68 +1,74 @@
 # Galaxy Shooter
 
-A portrait-mode mobile arcade space shooter built with Flutter and Flame. Phase 1 delivers a polished vertical slice with scalable architecture for future expansion.
+A portrait-mode mobile arcade space shooter built with Flutter and Flame. Phase 2 adds persistent progression, ship selection, upgrades, difficulty tiers, and a real meta-loop on top of the Phase 1 foundation.
 
-## Phase 1 Scope
+## Phase 2 Scope
 
-- One player ship with drag-to-move controls
-- One weapon type (forward-firing plasma)
-- One regular enemy archetype with 3 movement patterns (straight, sine wave, diagonal)
-- One scrolling level with 10 scripted enemy waves
-- One boss encounter with 2 behavior phases
-- Score system, health, and lives
-- Game over and victory flows with restart
-- Local high score persistence
-- Settings screen with fire mode selection (Auto / Manual)
-- Placeholder interfaces for future systems
+**Gameplay:**
+- Same core stage structure as Phase 1 with improved wave variety (14 waves with seeded variation)
+- Three difficulty tiers: Normal, Veteran, Expert (affects enemy/boss HP, fire rate, rewards)
+- Real pause menu with Resume, Restart, and Home
+
+**Progression:**
+- Persistent soft currency (credits) earned from gameplay
+- Three playable ships with distinct stats and visuals (Vanguard, Phantom, Titan)
+- Ship unlock/select flow in the Hangar
+- Four global upgrade lines: Max HP, Fire Rate, Bullet Damage, Movement Speed (5 levels each)
+- Run summary screen with score, rewards breakdown, and quick actions
+
+**Persistence:**
+- Local save data with versioning and Phase 1 migration support
+- Persisted: wallet, unlocked ships, selected ship, upgrade levels, best score, fire mode
 
 ## Architecture
 
 ```
 lib/
-  main.dart                    # App entry, orientation lock, provider setup
+  main.dart                           # Entry, orientation, migration, providers
   app/
-    app.dart                   # MaterialApp with theme and routes
-    game_page.dart             # Flame GameWidget wrapper with overlays
-    providers.dart             # Riverpod providers for settings, scores
-    routes.dart                # Named route definitions
-    theme/app_theme.dart       # Dark sci-fi theme
+    app.dart                          # MaterialApp with theme and routes
+    game_page.dart                    # Game lifecycle, difficulty select, pause, summary
+    providers.dart                    # All Riverpod providers (settings, score, wallet, ships, upgrades)
+    routes.dart                       # Named routes (home, settings, game, hangar)
+    theme/app_theme.dart              # Dark sci-fi theme
   core/
     config/
-      app_config.dart          # App metadata
-      game_balance.dart        # Centralized tuning values
-      game_constants.dart      # Storage keys
+      app_config.dart                 # App metadata
+      game_balance.dart               # Centralized tuning values
+      game_constants.dart             # Persistence keys
     persistence/
-      key_value_store.dart     # Storage abstraction
-      shared_prefs_store.dart  # SharedPreferences implementation
-    services/
-      audio_service.dart       # Audio interface (placeholder)
-      haptics_service.dart     # Haptics interface (placeholder)
-      analytics_service.dart   # Analytics interface (placeholder)
-      noop_*_service.dart      # No-op implementations
-    utils/
-      math_utils.dart          # Random helpers
-      extensions.dart          # Vector2 extensions
+      key_value_store.dart            # Storage abstraction
+      shared_prefs_store.dart         # SharedPreferences implementation
+      save_migration.dart             # Versioned save migration
+    services/                         # Audio, haptics, analytics (placeholder interfaces + no-ops)
+    utils/                            # Math helpers, extensions
   features/
-    home/presentation/         # Home screen UI
-    settings/                  # Settings domain, data, presentation
-    high_score/                # High score domain and data
-    session/domain/            # RunResult model
+    home/presentation/                # Home screen (title, best score, credits, ship, CTA)
+    settings/                         # Fire mode setting (domain, data, presentation)
+    high_score/                       # Best score persistence (domain, data)
+    session/domain/                   # RunResult model (score, outcome, kills, boss)
+    hangar/
+      domain/                         # ShipDefinition, ShipStats, ShipCatalog, ResolvedShipStats
+      data/                           # LocalShipCatalogRepository
+      presentation/                   # HangarScreen, ShipCard, UpgradePanel
+    progression/
+      domain/                         # CurrencyWallet, DifficultyTier, DifficultyConfig,
+                                      # UpgradeDefinition, UpgradeState, RewardCalculator, etc.
+      data/                           # LocalProgressionRepository
+      presentation/                   # DifficultySelectScreen, RunSummaryScreen
   game/
-    galaxy_game.dart           # FlameGame subclass, game state management
+    galaxy_game.dart                  # FlameGame: state, stats, difficulty, kill tracking
     world/
-      galaxy_world.dart        # World component, drag input, wave spawning
-      spawn_timeline.dart      # Level script data
+      galaxy_world.dart               # World component, spawning, drag input
+      spawn_timeline.dart             # Seeded wave templates (14 waves + boss)
     components/
-      background/              # Parallax starfield
-      player/                  # Player ship + weapon
-      enemies/                 # Enemy ship + weapon
-      boss/                    # Boss ship + weapon + health bar
-      projectiles/             # Player and enemy bullets
-      ui/                      # HUD, fire button
-  future/
-    progression/               # ProgressionService placeholder
-    economy/                   # EconomyService placeholder
-    ships/                     # ShipCatalogService placeholder
+      background/                     # Parallax starfield
+      player/                         # PlayerShip (3 visual styles), PlayerWeapon (configurable)
+      enemies/                        # EnemyShip (difficulty-scaled), EnemyWeapon
+      boss/                           # BossShip (difficulty-scaled), BossWeapon, BossHealthBar
+      projectiles/                    # PlayerBullet, EnemyBullet
+      ui/                             # HUD, FireButton
+  future/                             # Placeholder interfaces (progression, economy, ships)
 ```
 
 ## Dependencies
@@ -81,7 +87,7 @@ flutter pub get
 flutter run
 ```
 
-Portrait orientation is enforced. The app targets iOS and Android.
+Portrait orientation is enforced. Targets iOS and Android.
 
 ## How to Test
 
@@ -90,33 +96,35 @@ flutter test
 flutter analyze
 ```
 
-Tests cover:
-- **Unit**: Settings repo, high score repo, fire mode parsing, game settings model, run result model, spawn timeline, game balance values
-- **Widget**: Home screen rendering, navigation, settings screen rendering and interaction
-- **Game logic**: Boss phase values, player damage/lives logic
+115 tests covering:
+- **Unit**: Wallet logic, reward calculation, ship catalog, upgrade rules/costs/max-level, difficulty modifiers, stat resolution pipeline, save migration, persistence for wallet/upgrades/ships, settings, high score, fire mode, game balance
+- **Widget**: Home screen (credits, ship name, navigation), settings screen, hangar screen (ship cards, unlock/active states, upgrades section), difficulty selection screen
+- **Game logic**: Boss phase values, difficulty scaling, player damage/lives, double-claim prevention, enemy/boss kill tracking
 
-## Out of Scope (Phase 1)
+## Stat Resolution Pipeline
 
-These systems are intentionally not implemented beyond placeholder interfaces:
+Final gameplay stats are computed from:
+1. **Ship base stats** (ShipDefinition)
+2. **Global upgrades** (UpgradeState applied via ResolvedShipStats)
+3. **Difficulty modifiers** (applied at runtime in enemy/boss onLoad)
 
-- Multiple ships, weapons, or enemy families
-- Upgrades, currency, economy
-- Mission map / stage selection
-- Daily rewards, achievements
+## Out of Scope (Phase 2)
+
+- Multiple stages / campaign map
 - Online leaderboards, cloud save
-- Ads, monetization, analytics
-- Account system
+- Achievements, daily rewards
+- More than 3 ships or 4 upgrade lines
+- Multiple weapon classes
+- Ads, monetization, analytics SDKs
 - Audio/haptics production
-- Asset pipelines
+- Account system, social features
 
 ## Extending for Future Phases
 
-- **New weapons**: Add weapon classes implementing a weapon interface, wire into player ship
-- **New enemies**: Extend `EnemyShip` or create new archetypes, add to spawn timeline
-- **Multiple levels**: Create additional `SpawnTimeline` configurations, add level selection
-- **Progression**: Replace `NoopProgressionService` with real implementation
-- **Economy**: Replace `NoopEconomyService` with currency/shop logic
-- **Audio**: Replace `NoopAudioService` with a real audio engine (e.g., flame_audio)
-- **Ships**: Replace `NoopShipCatalogService` with ship unlock/selection
-- **Settings**: Add new fields to `GameSettings` and extend the settings screen
-- **Persistence**: Swap `SharedPrefsStore` for any backend behind the `KeyValueStore` interface
+- **New ships**: Add entries to `ShipCatalog.ships`, add visual style enum + render method
+- **New upgrades**: Add to `UpgradeType` enum and `UpgradeConfig.definitions`
+- **New stages**: Create additional `SpawnTimeline` configurations, add stage selection
+- **Multiple weapons**: Extend `PlayerWeapon` with weapon type system
+- **Audio**: Replace `NoopAudioService` with real implementation
+- **Cloud save**: Replace `KeyValueStore` with a cloud-backed implementation
+- **Achievements**: Add achievement definitions and tracking service

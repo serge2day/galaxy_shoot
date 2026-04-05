@@ -13,8 +13,8 @@ enum BossPhase { entering, phase1, phase2 }
 
 class BossShip extends PositionComponent
     with CollisionCallbacks, HasGameReference<GalaxyGame> {
-  int hp = GameBalance.bossHp;
-  int get maxHp => GameBalance.bossHp;
+  late int hp;
+  late int maxHp;
   BossPhase phase = BossPhase.entering;
 
   late BossWeapon _weapon;
@@ -30,7 +30,13 @@ class BossShip extends PositionComponent
 
   @override
   Future<void> onLoad() async {
-    _weapon = BossWeapon();
+    final mods = game.difficultyModifiers;
+    maxHp = (GameBalance.bossHp * mods.bossHpMultiplier).ceil();
+    hp = maxHp;
+
+    final baseCooldown =
+        GameBalance.bossFireCooldown * mods.bossFireRateMultiplier;
+    _weapon = BossWeapon(cooldown: baseCooldown);
     add(RectangleHitbox(size: size * 0.85, position: size * 0.075));
   }
 
@@ -72,7 +78,9 @@ class BossShip extends PositionComponent
   void _checkPhaseTransition() {
     if (hp <= maxHp * GameBalance.bossPhase2HpRatio) {
       phase = BossPhase.phase2;
-      _weapon.cooldown = GameBalance.bossPhase2FireCooldown;
+      final mods = game.difficultyModifiers;
+      _weapon.cooldown =
+          GameBalance.bossPhase2FireCooldown * mods.bossFireRateMultiplier;
     }
   }
 
@@ -81,7 +89,6 @@ class BossShip extends PositionComponent
     final w = size.x;
     final h = size.y;
 
-    // Boss glow
     final glowColor = phase == BossPhase.phase2
         ? const Color(0x30FF1744)
         : const Color(0x207C4DFF);
@@ -90,9 +97,8 @@ class BossShip extends PositionComponent
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
     canvas.drawCircle(Offset(w / 2, h / 2), w * 0.6, glowPaint);
 
-    // Boss body - large angular shape
     final bodyPath = Path()
-      ..moveTo(w / 2, h * 0.1) // top center
+      ..moveTo(w / 2, h * 0.1)
       ..lineTo(w, h * 0.4)
       ..lineTo(w * 0.9, h * 0.8)
       ..lineTo(w * 0.7, h)
@@ -106,7 +112,6 @@ class BossShip extends PositionComponent
         : const Color(0xFF6A1B9A);
     canvas.drawPath(bodyPath, Paint()..color = bodyColor);
 
-    // Core
     final corePath = Path()
       ..moveTo(w / 2, h * 0.2)
       ..lineTo(w * 0.75, h * 0.45)
@@ -120,7 +125,6 @@ class BossShip extends PositionComponent
         : const Color(0xFF9C27B0);
     canvas.drawPath(corePath, Paint()..color = coreColor);
 
-    // Eye
     final eyePaint = Paint()
       ..color = const Color(0xFFFFFF00)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
@@ -141,6 +145,8 @@ class BossShip extends PositionComponent
       }
       if (hp <= 0) {
         game.addScore(GameBalance.bossScoreReward);
+        game.recordEnemyKill();
+        game.recordBossDefeat();
         removeFromParent();
         game.triggerVictory();
       }

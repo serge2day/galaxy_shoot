@@ -24,9 +24,11 @@ class EnemyShip extends PositionComponent
     required Vector2 startPosition,
     this.movement = EnemyMovement.straight,
     this.speed = GameBalance.enemySpeed,
-    this.hp = GameBalance.enemyHp,
+    int? hp,
     this.scoreReward = GameBalance.enemyScoreReward,
+    double? fireCooldown,
   }) : _startX = startPosition.x,
+       hp = hp ?? GameBalance.enemyHp,
        super(
          position: startPosition,
          size: Vector2(GameBalance.enemyShipWidth, GameBalance.enemyShipHeight),
@@ -35,8 +37,11 @@ class EnemyShip extends PositionComponent
 
   @override
   Future<void> onLoad() async {
-    add(EnemyWeapon());
+    final cooldownMod = game.difficultyModifiers.enemyFireRateMultiplier;
+    add(EnemyWeapon(cooldown: GameBalance.enemyFireCooldown * cooldownMod));
     add(RectangleHitbox(size: size * 0.8, position: size * 0.1));
+    // Apply difficulty HP multiplier
+    hp = (hp * game.difficultyModifiers.enemyHpMultiplier).ceil();
   }
 
   @override
@@ -70,32 +75,26 @@ class EnemyShip extends PositionComponent
     final w = size.x;
     final h = size.y;
 
-    // Enemy glow
     final glowPaint = Paint()
       ..color = const Color(0x20FF5252)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     canvas.drawCircle(Offset(w / 2, h / 2), w * 0.5, glowPaint);
 
-    // Enemy body (inverted triangle shape)
     final bodyPath = Path()
-      ..moveTo(w / 2, h) // bottom point
+      ..moveTo(w / 2, h)
       ..lineTo(w, 0)
       ..lineTo(w * 0.7, h * 0.3)
       ..lineTo(w * 0.3, h * 0.3)
       ..lineTo(0, 0)
       ..close();
+    canvas.drawPath(bodyPath, Paint()..color = const Color(0xFFD32F2F));
 
-    final bodyPaint = Paint()..color = const Color(0xFFD32F2F);
-    canvas.drawPath(bodyPath, bodyPaint);
-
-    // Core highlight
     final corePath = Path()
       ..moveTo(w / 2, h * 0.85)
       ..lineTo(w * 0.7, h * 0.15)
       ..lineTo(w * 0.3, h * 0.15)
       ..close();
-    final corePaint = Paint()..color = const Color(0xFFFF5252);
-    canvas.drawPath(corePath, corePaint);
+    canvas.drawPath(corePath, Paint()..color = const Color(0xFFFF5252));
   }
 
   @override
@@ -109,6 +108,7 @@ class EnemyShip extends PositionComponent
       hp -= other.damage;
       if (hp <= 0) {
         game.addScore(scoreReward);
+        game.recordEnemyKill();
         removeFromParent();
       }
     }
