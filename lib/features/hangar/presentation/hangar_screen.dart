@@ -164,11 +164,7 @@ class _HeroShipDisplay extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF0A1628), Color(0xFF050A18)],
-        ),
+        color: const Color(0xFF060D1F),
       ),
       child: Stack(
         children: [
