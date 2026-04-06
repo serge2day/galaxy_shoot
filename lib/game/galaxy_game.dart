@@ -152,6 +152,28 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   }
 
   @override
+  void onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    if (_state == GameState.playing) {
+      galaxyWorld.player.moveTo(event.canvasPosition);
+    }
+  }
+
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    super.onDragUpdate(event);
+    if (_state == GameState.playing) {
+      galaxyWorld.player.moveTo(event.canvasEndPosition);
+    }
+  }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    galaxyWorld.player.stopMoving();
+  }
+
+  @override
   void lifecycleStateChange(AppLifecycleState state) {
     super.lifecycleStateChange(state);
     if (state == AppLifecycleState.paused ||

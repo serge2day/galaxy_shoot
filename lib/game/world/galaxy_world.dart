@@ -1,8 +1,6 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
-import 'package:flame/events.dart';
-
 import '../../features/hangar/domain/ship_definition.dart';
 import '../../features/settings/domain/fire_mode.dart';
 import '../components/background/starfield_component.dart';
@@ -16,8 +14,7 @@ import '../components/ui/hud_component.dart';
 import '../galaxy_game.dart';
 import 'stages/stage_definition.dart';
 
-class GalaxyWorld extends Component
-    with HasGameReference<GalaxyGame>, DragCallbacks {
+class GalaxyWorld extends Component with HasGameReference<GalaxyGame> {
   @override
   // ignore: overridden_fields
   final GalaxyGame game;
@@ -121,24 +118,6 @@ class GalaxyWorld extends Component
     );
     add(boss);
     add(BossHealthBar(boss: boss));
-  }
-
-  @override
-  void onDragStart(DragStartEvent event) {
-    super.onDragStart(event);
-    player.moveTo(event.localPosition);
-  }
-
-  @override
-  void onDragUpdate(DragUpdateEvent event) {
-    super.onDragUpdate(event);
-    player.moveTo(event.localEndPosition);
-  }
-
-  @override
-  void onDragEnd(DragEndEvent event) {
-    super.onDragEnd(event);
-    player.stopMoving();
   }
 }
 
