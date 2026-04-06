@@ -17,19 +17,30 @@ class HangarScreen extends ConsumerWidget {
     final upgradeState = ref.watch(upgradeStateProvider);
     final selectedShip = ShipCatalog.getById(selectedId);
 
-    return Scaffold(
-      backgroundColor: AppTheme.bgDark,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            } else {
-              Navigator.of(context).pushReplacementNamed('/');
-            }
-          },
-        ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          } else {
+            Navigator.of(context).pushReplacementNamed('/');
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.bgDark,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pushReplacementNamed('/');
+              }
+            },
+          ),
         title: const Text(
           'HANGAR',
           style: TextStyle(fontSize: 22, letterSpacing: 2),
@@ -145,6 +156,7 @@ class HangarScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
         ],
+      ),
       ),
     );
   }
