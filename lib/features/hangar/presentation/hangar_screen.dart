@@ -20,6 +20,16 @@ class HangarScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppTheme.bgDark,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              Navigator.of(context).pushReplacementNamed('/');
+            }
+          },
+        ),
         title: const Text(
           'HANGAR',
           style: TextStyle(fontSize: 22, letterSpacing: 2),
