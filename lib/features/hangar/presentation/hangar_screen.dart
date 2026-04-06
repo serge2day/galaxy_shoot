@@ -251,7 +251,7 @@ class _ShipCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: _borderColor, width: isSelected ? 2 : 1),
-          color: const Color(0xFF0E1525),
+          color: const Color(0xFF000000),
         ),
         child: Column(
           children: [
@@ -406,7 +406,7 @@ class _UpgradeCell extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: const Color(0xFF0E1525),
+        color: const Color(0xFF000000),
         border: Border.all(color: Colors.white10),
       ),
       child: Column(
