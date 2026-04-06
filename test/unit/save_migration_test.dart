@@ -6,7 +6,6 @@ import '../helpers/test_helpers.dart';
 void main() {
   test('migration sets version to current when starting from 0', () async {
     final repo = FakeProgressionRepository();
-    // Simulate Phase 1 state (version 0)
     await repo.setSaveVersion(0);
 
     await SaveMigration(repo).migrate();
@@ -30,15 +29,23 @@ void main() {
     expect(await repo.getSaveVersion(), SaveMigration.currentVersion);
   });
 
-  test('current version is 3', () {
-    expect(SaveMigration.currentVersion, 3);
+  test('current version is 4', () {
+    expect(SaveMigration.currentVersion, 4);
   });
 
-  test('migration from Phase 2 (v2) to Phase 3 (v3)', () async {
+  test('migration from v2 to current', () async {
     final repo = FakeProgressionRepository();
     await repo.setSaveVersion(2);
 
     await SaveMigration(repo).migrate();
-    expect(await repo.getSaveVersion(), 3);
+    expect(await repo.getSaveVersion(), SaveMigration.currentVersion);
+  });
+
+  test('migration from v3 to current', () async {
+    final repo = FakeProgressionRepository();
+    await repo.setSaveVersion(3);
+
+    await SaveMigration(repo).migrate();
+    expect(await repo.getSaveVersion(), SaveMigration.currentVersion);
   });
 }

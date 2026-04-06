@@ -111,16 +111,41 @@ class PlayerShip extends PositionComponent
   @override
   void render(Canvas canvas) {
     if (!_visible) return;
+
+    // Apply evolution scale
+    final evoScale = game.evolution.getShipScale();
+    if (evoScale != 1.0) {
+      canvas.save();
+      canvas.translate(size.x / 2, size.y / 2);
+      canvas.scale(evoScale);
+      canvas.translate(-size.x / 2, -size.y / 2);
+    }
+
+    // Overdrive glow
+    if (game.evolution.isOverdriveActive) {
+      final glow = Paint()
+        ..color = const Color(0x40FFD600)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
+      canvas.drawCircle(Offset(size.x / 2, size.y / 2), size.x * 0.8, glow);
+    }
+
     switch (visualStyle) {
       case ShipVisualStyle.balanced:
+      case ShipVisualStyle.guardian:
+      case ShipVisualStyle.ravager:
         _renderBalanced(canvas);
         break;
-      case ShipVisualStyle.swift:
+      case ShipVisualStyle.striker:
+      case ShipVisualStyle.phantom:
         _renderSwift(canvas);
         break;
-      case ShipVisualStyle.heavy:
+      case ShipVisualStyle.titan:
         _renderHeavy(canvas);
         break;
+    }
+
+    if (evoScale != 1.0) {
+      canvas.restore();
     }
 
     // Shield overlay
@@ -274,8 +299,8 @@ class PlayerShip extends PositionComponent
 
   void _applyPickup(PickupType type) {
     switch (type) {
-      case PickupType.weaponBoost:
-        game.boostWeapon();
+      case PickupType.evolutionCore:
+        game.collectEvolutionCore();
         break;
       case PickupType.shield:
         _shielded = true;
@@ -284,6 +309,9 @@ class PlayerShip extends PositionComponent
       case PickupType.heal:
         _hp = stats.maxHp;
         game.setHp(_hp);
+        break;
+      case PickupType.bombCharge:
+        game.bomb.addCharge();
         break;
     }
   }
@@ -301,6 +329,7 @@ class PlayerShip extends PositionComponent
       } else {
         _hp = stats.maxHp;
         game.setHp(_hp);
+        game.evolution.dropLevel();
         _startInvulnerability();
       }
     } else {

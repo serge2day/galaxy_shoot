@@ -164,6 +164,8 @@ class RunSummaryScreen extends StatelessWidget {
           _infoRow('Difficulty', data.difficulty.displayName),
           const SizedBox(height: 6),
           _infoRow('Enemies Defeated', '${data.result.enemyKills}'),
+          const SizedBox(height: 6),
+          _infoRow('Peak Evolution', 'Level ${data.result.peakEvolutionLevel}'),
         ],
       ),
     );

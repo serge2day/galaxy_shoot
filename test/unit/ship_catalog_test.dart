@@ -4,8 +4,8 @@ import 'package:galaxy_shoot/features/hangar/domain/ship_definition.dart';
 import '../helpers/test_helpers.dart';
 
 void main() {
-  test('catalog has exactly 3 ships', () {
-    expect(ShipCatalog.ships.length, 3);
+  test('catalog has exactly 6 ships', () {
+    expect(ShipCatalog.ships.length, 6);
   });
 
   test('vanguard is the default starter ship', () {
@@ -19,9 +19,9 @@ void main() {
     expect(ship.unlockCost, 500);
   });
 
-  test('titan costs 800 credits', () {
+  test('titan costs 1000 credits', () {
     final ship = ShipCatalog.getById('titan');
-    expect(ship.unlockCost, 800);
+    expect(ship.unlockCost, 1000);
   });
 
   test('getById falls back to first ship for unknown id', () {
@@ -31,7 +31,12 @@ void main() {
 
   test('each ship has unique visual style', () {
     final styles = ShipCatalog.ships.map((s) => s.visualStyle).toSet();
-    expect(styles.length, 3);
+    expect(styles.length, 6);
+  });
+
+  test('all ships have unique ids', () {
+    final ids = ShipCatalog.ships.map((s) => s.id).toSet();
+    expect(ids.length, 6);
   });
 
   group('ship catalog repository', () {

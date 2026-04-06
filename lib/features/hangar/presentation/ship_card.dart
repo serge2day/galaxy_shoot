@@ -116,10 +116,17 @@ class ShipCard extends StatelessWidget {
       case ShipVisualStyle.balanced:
         color = const Color(0xFF00E5FF);
         break;
-      case ShipVisualStyle.swift:
+      case ShipVisualStyle.striker:
+      case ShipVisualStyle.phantom:
         color = const Color(0xFF69F0AE);
         break;
-      case ShipVisualStyle.heavy:
+      case ShipVisualStyle.guardian:
+        color = const Color(0xFF42A5F5);
+        break;
+      case ShipVisualStyle.ravager:
+        color = const Color(0xFFFF5252);
+        break;
+      case ShipVisualStyle.titan:
         color = const Color(0xFFFF9100);
         break;
     }

@@ -8,6 +8,8 @@ import '../features/progression/domain/difficulty_config.dart';
 import '../features/progression/domain/difficulty_tier.dart';
 import '../features/session/domain/run_result.dart';
 import '../features/settings/domain/fire_mode.dart';
+import 'systems/bomb_system.dart';
+import 'systems/evolution_system.dart';
 import 'world/galaxy_world.dart';
 import 'world/stages/stage_definition.dart';
 import 'world/stages/stage_registry.dart';
@@ -43,10 +45,13 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   bool _bossDefeated = false;
   bool get bossDefeated => _bossDefeated;
 
-  int _weaponLevel = 1;
-  int get weaponLevel => _weaponLevel;
-
   bool _rewardsClaimed = false;
+
+  final EvolutionSystem evolution = EvolutionSystem();
+  final BombSystem bomb = BombSystem();
+
+  // Convenience getters
+  int get weaponLevel => evolution.level;
 
   late GalaxyWorld galaxyWorld;
 
@@ -70,6 +75,12 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
     await add(galaxyWorld);
   }
 
+  @override
+  void update(double dt) {
+    super.update(dt);
+    evolution.update(dt);
+  }
+
   void setHp(int value) {
     _hp = value;
   }
@@ -90,10 +101,14 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
     _bossDefeated = true;
   }
 
-  void boostWeapon() {
-    if (_weaponLevel < 3) {
-      _weaponLevel++;
-    }
+  /// Collect an evolution core. Returns true if level changed.
+  bool collectEvolutionCore() {
+    return evolution.collectCore();
+  }
+
+  /// Use a bomb if available. Returns true if bomb was used.
+  bool useBomb() {
+    return bomb.use();
   }
 
   RunResult? claimResult() {
@@ -106,6 +121,7 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
           : RunOutcome.gameOver,
       enemyKills: _enemyKills,
       bossDefeated: _bossDefeated,
+      peakEvolutionLevel: evolution.peakLevel,
     );
   }
 
@@ -119,6 +135,7 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
         outcome: RunOutcome.gameOver,
         enemyKills: _enemyKills,
         bossDefeated: _bossDefeated,
+        peakEvolutionLevel: evolution.peakLevel,
       ),
     );
   }
@@ -133,6 +150,7 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
         outcome: RunOutcome.victory,
         enemyKills: _enemyKills,
         bossDefeated: _bossDefeated,
+        peakEvolutionLevel: evolution.peakLevel,
       ),
     );
   }

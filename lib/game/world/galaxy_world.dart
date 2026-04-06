@@ -44,6 +44,7 @@ class GalaxyWorld extends Component with HasGameReference<GalaxyGame> {
         count: template.count,
         enemyType: template.enemyType,
         movement: template.movement,
+        isElite: template.isElite,
         xStart: xStart,
         xSpacing: xSpacing,
       );
@@ -91,7 +92,11 @@ class GalaxyWorld extends Component with HasGameReference<GalaxyGame> {
     }
 
     if (!_bossSpawned && _levelTimer >= game.stageDef.bossSpawnTime) {
-      _spawnBoss();
+      if (game.stageDef.hasBoss) {
+        _spawnBoss();
+      } else {
+        game.triggerVictory();
+      }
       _bossSpawned = true;
     }
   }
@@ -105,6 +110,7 @@ class GalaxyWorld extends Component with HasGameReference<GalaxyGame> {
           startPosition: Vector2(x, -40.0 - i * 30.0),
           movement: wave.movement,
           enemyType: wave.enemyType,
+          isElite: wave.isElite,
         ),
       );
     }
@@ -126,6 +132,7 @@ class _ResolvedWave {
   final int count;
   final EnemyType enemyType;
   final EnemyMovementType movement;
+  final bool isElite;
   final double xStart;
   final double xSpacing;
 
@@ -134,6 +141,7 @@ class _ResolvedWave {
     required this.count,
     required this.enemyType,
     required this.movement,
+    this.isElite = false,
     required this.xStart,
     required this.xSpacing,
   });

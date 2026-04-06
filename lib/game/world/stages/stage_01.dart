@@ -9,15 +9,8 @@ const stage01 = StageDefinition(
   bossSpawnTime: 55.0,
   bgTint: Color(0xFF050A18),
   starSpeed: 1.0,
-  bossConfig: BossConfig(
-    baseHp: 40,
-    baseCooldown: 0.6,
-    phase2HpRatio: 0.5,
-    phase3HpRatio: 0.2,
-    speed: 80,
-    width: 80,
-    height: 70,
-  ),
+  hasBoss: false,
+  bossConfig: BossConfig(baseHp: 1, baseCooldown: 1.0),
   waves: [
     WaveTemplate(time: 2.0, count: 3, enemyType: EnemyType.drone),
     WaveTemplate(

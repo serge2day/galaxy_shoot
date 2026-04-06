@@ -8,12 +8,14 @@ class WaveTemplate {
   final int count;
   final EnemyType enemyType;
   final EnemyMovementType movement;
+  final bool isElite;
 
   const WaveTemplate({
     required this.time,
     required this.count,
     this.enemyType = EnemyType.drone,
     this.movement = EnemyMovementType.straight,
+    this.isElite = false,
   });
 }
 
@@ -46,6 +48,7 @@ class StageDefinition {
   final BossConfig bossConfig;
   final Color bgTint;
   final double starSpeed;
+  final bool hasBoss;
 
   const StageDefinition({
     required this.id,
@@ -54,5 +57,6 @@ class StageDefinition {
     required this.bossConfig,
     this.bgTint = const Color(0xFF050A18),
     this.starSpeed = 1.0,
+    this.hasBoss = true,
   });
 }

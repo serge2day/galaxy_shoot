@@ -1,7 +1,7 @@
 import '../../features/progression/domain/progression_repository.dart';
 
 class SaveMigration {
-  static const int currentVersion = 3;
+  static const int currentVersion = 4;
 
   final ProgressionRepository _progression;
 
@@ -17,9 +17,14 @@ class SaveMigration {
     }
 
     if (version < 3) {
-      // Phase 2 -> Phase 3: new keys for campaign progress, tutorial state,
-      // per-stage best scores, and extended settings (music/sfx/haptics)
-      // all default safely when absent. No data copy needed.
+      // Phase 2 -> Phase 3: campaign progress, tutorial, per-stage scores,
+      // extended settings. All default safely when absent.
+    }
+
+    if (version < 4) {
+      // Phase 3 -> Evolution update: 9 stages (up from 3), 6 ships (up from 3),
+      // 5 enemy types, evolution system. New keys default safely.
+      // Existing stage clears for stage1-3 are preserved.
     }
 
     await _progression.setSaveVersion(currentVersion);

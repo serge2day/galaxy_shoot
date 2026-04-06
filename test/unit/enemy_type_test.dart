@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:galaxy_shoot/game/components/enemies/enemy_type.dart';
 
 void main() {
-  test('3 enemy types exist', () {
-    expect(EnemyType.values.length, 3);
+  test('5 enemy types exist', () {
+    expect(EnemyType.values.length, 5);
   });
 
   test('drone is baseline enemy', () {
@@ -23,16 +23,21 @@ void main() {
     expect(EnemyType.gunship.baseHp, greaterThan(EnemyType.interceptor.baseHp));
   });
 
-  test('gunship is slower but rewards more', () {
-    expect(EnemyType.gunship.baseSpeed, lessThan(EnemyType.drone.baseSpeed));
-    expect(
-      EnemyType.gunship.scoreReward,
-      greaterThan(EnemyType.drone.scoreReward),
-    );
+  test('swarmer is small and fast', () {
+    expect(EnemyType.swarmer.width, lessThan(EnemyType.drone.width));
+    expect(EnemyType.swarmer.baseSpeed, greaterThan(EnemyType.drone.baseSpeed));
+    expect(EnemyType.swarmer.baseHp, lessThan(EnemyType.drone.baseHp));
   });
 
-  test('gunship is bigger than drone', () {
-    expect(EnemyType.gunship.width, greaterThan(EnemyType.drone.width));
-    expect(EnemyType.gunship.height, greaterThan(EnemyType.drone.height));
+  test('carrier is toughest and slowest', () {
+    expect(EnemyType.carrier.baseHp, greaterThan(EnemyType.gunship.baseHp));
+    expect(EnemyType.carrier.baseSpeed, lessThan(EnemyType.gunship.baseSpeed));
+  });
+
+  test('carrier rewards more than others', () {
+    expect(
+      EnemyType.carrier.scoreReward,
+      greaterThan(EnemyType.gunship.scoreReward),
+    );
   });
 }

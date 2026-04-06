@@ -21,6 +21,7 @@ class EnemyShip extends PositionComponent
   final EnemyType enemyType;
   final double speed;
   final int scoreReward;
+  final bool isElite;
   int hp;
   final double _startX;
   double _elapsed = 0;
@@ -35,15 +36,25 @@ class EnemyShip extends PositionComponent
     required Vector2 startPosition,
     this.movement = EnemyMovementType.straight,
     this.enemyType = EnemyType.drone,
+    this.isElite = false,
     double? speed,
     int? hp,
   }) : _startX = startPosition.x,
        speed = speed ?? enemyType.baseSpeed,
-       hp = hp ?? enemyType.baseHp.toInt(),
-       scoreReward = enemyType.scoreReward,
+       hp =
+           hp ??
+           (isElite
+               ? (enemyType.baseHp * 2).toInt()
+               : enemyType.baseHp.toInt()),
+       scoreReward = isElite
+           ? enemyType.scoreReward * 2
+           : enemyType.scoreReward,
        super(
          position: startPosition,
-         size: Vector2(enemyType.width, enemyType.height),
+         size: Vector2(
+           enemyType.width * (isElite ? 1.3 : 1.0),
+           enemyType.height * (isElite ? 1.3 : 1.0),
+         ),
          anchor: Anchor.center,
        );
 
@@ -123,6 +134,22 @@ class EnemyShip extends PositionComponent
       case EnemyType.gunship:
         _renderGunship(canvas);
         break;
+      case EnemyType.swarmer:
+        _renderSwarmer(canvas);
+        break;
+      case EnemyType.carrier:
+        _renderCarrier(canvas);
+        break;
+    }
+
+    // Elite indicator: brighter outer glow ring
+    if (isElite) {
+      final w = size.x;
+      final h = size.y;
+      final elitePaint = Paint()
+        ..color = const Color(0x60FFD600)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+      canvas.drawCircle(Offset(w / 2, h / 2), w * 0.6, elitePaint);
     }
   }
 
@@ -232,6 +259,91 @@ class EnemyShip extends PositionComponent
     canvas.drawCircle(Offset(w / 2, h / 2), 3, eyePaint);
   }
 
+  void _renderSwarmer(Canvas canvas) {
+    final w = size.x;
+    final h = size.y;
+
+    // Glow
+    final glowPaint = Paint()
+      ..color = enemyType.glowColor.withValues(alpha: 0.15)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawCircle(Offset(w / 2, h / 2), w * 0.5, glowPaint);
+
+    // Small diamond shape
+    final bodyPath = Path()
+      ..moveTo(w / 2, 0) // top
+      ..lineTo(w, h / 2) // right
+      ..lineTo(w / 2, h) // bottom
+      ..lineTo(0, h / 2) // left
+      ..close();
+    canvas.drawPath(bodyPath, Paint()..color = enemyType.bodyColor);
+
+    // Inner diamond highlight
+    final corePath = Path()
+      ..moveTo(w / 2, h * 0.2)
+      ..lineTo(w * 0.75, h / 2)
+      ..lineTo(w / 2, h * 0.8)
+      ..lineTo(w * 0.25, h / 2)
+      ..close();
+    canvas.drawPath(corePath, Paint()..color = enemyType.glowColor);
+
+    // Center dot
+    final dotPaint = Paint()
+      ..color = const Color(0xFFFFFFFF)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1);
+    canvas.drawCircle(Offset(w / 2, h / 2), 1.5, dotPaint);
+  }
+
+  void _renderCarrier(Canvas canvas) {
+    final w = size.x;
+    final h = size.y;
+
+    // Large glow
+    final glowPaint = Paint()
+      ..color = enemyType.glowColor.withValues(alpha: 0.12)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+    canvas.drawCircle(Offset(w / 2, h / 2), w * 0.6, glowPaint);
+
+    // Wide heavy ship - flat-topped with angled sides
+    final bodyPath = Path()
+      ..moveTo(w * 0.15, 0) // top-left
+      ..lineTo(w * 0.85, 0) // top-right
+      ..lineTo(w, h * 0.3) // right upper
+      ..lineTo(w * 0.9, h * 0.7) // right lower
+      ..lineTo(w * 0.75, h) // bottom-right
+      ..lineTo(w * 0.25, h) // bottom-left
+      ..lineTo(w * 0.1, h * 0.7) // left lower
+      ..lineTo(0, h * 0.3) // left upper
+      ..close();
+    canvas.drawPath(bodyPath, Paint()..color = enemyType.bodyColor);
+
+    // Inner armor plating
+    final corePath = Path()
+      ..moveTo(w * 0.25, h * 0.1)
+      ..lineTo(w * 0.75, h * 0.1)
+      ..lineTo(w * 0.85, h * 0.35)
+      ..lineTo(w * 0.8, h * 0.65)
+      ..lineTo(w * 0.65, h * 0.9)
+      ..lineTo(w * 0.35, h * 0.9)
+      ..lineTo(w * 0.2, h * 0.65)
+      ..lineTo(w * 0.15, h * 0.35)
+      ..close();
+    canvas.drawPath(corePath, Paint()..color = enemyType.glowColor);
+
+    // Two engine glows at bottom
+    final enginePaint = Paint()
+      ..color = const Color(0xFFFF5252)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawCircle(Offset(w * 0.35, h * 0.95), 3, enginePaint);
+    canvas.drawCircle(Offset(w * 0.65, h * 0.95), 3, enginePaint);
+
+    // Center command bridge
+    final bridgePaint = Paint()
+      ..color = const Color(0xFFFFFFFF)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+    canvas.drawCircle(Offset(w / 2, h * 0.4), 3.5, bridgePaint);
+  }
+
   @override
   void onCollisionStart(
     Set<Vector2> intersectionPoints,
@@ -258,15 +370,72 @@ class EnemyShip extends PositionComponent
           ),
         );
 
-        // 15% chance to drop a pickup
-        if (_rng.nextDouble() < 0.15) {
-          final pickupTypes = PickupType.values;
-          final type = pickupTypes[_rng.nextInt(pickupTypes.length)];
-          parent?.add(PickupItem(type: type, startPosition: position.clone()));
+        // Carrier special: spawn 2-3 swarmers on death
+        if (enemyType == EnemyType.carrier) {
+          _spawnSwarmers();
         }
+
+        // Drop logic with evolution core focus
+        _handleDrops();
 
         removeFromParent();
       }
+    }
+  }
+
+  void _spawnSwarmers() {
+    final count = 2 + _rng.nextInt(2); // 2 or 3
+    for (int i = 0; i < count; i++) {
+      final offset = Vector2(
+        (i - 1) * 30.0 + (_rng.nextDouble() - 0.5) * 10,
+        (_rng.nextDouble() - 0.5) * 10,
+      );
+      parent?.add(
+        EnemyShip(
+          startPosition: position.clone()..add(offset),
+          movement: EnemyMovementType.straight,
+          enemyType: EnemyType.swarmer,
+        ),
+      );
+    }
+  }
+
+  void _handleDrops() {
+    // Determine evolution core drop chance based on type and elite status
+    double coreChance;
+    if (isElite) {
+      coreChance = 1.0; // 100% for elites
+    } else {
+      switch (enemyType) {
+        case EnemyType.gunship:
+        case EnemyType.carrier:
+          coreChance = 0.40; // 40% for gunships/carriers
+          break;
+        default:
+          coreChance = 0.20; // 20% for normal enemies
+          break;
+      }
+    }
+
+    if (_rng.nextDouble() < coreChance) {
+      parent?.add(
+        PickupItem(
+          type: PickupType.evolutionCore,
+          startPosition: position.clone(),
+        ),
+      );
+      return; // Only one drop per enemy
+    }
+
+    // Small chance for other pickups (10%)
+    if (_rng.nextDouble() < 0.10) {
+      final otherTypes = [
+        PickupType.shield,
+        PickupType.heal,
+        PickupType.bombCharge,
+      ];
+      final type = otherTypes[_rng.nextInt(otherTypes.length)];
+      parent?.add(PickupItem(type: type, startPosition: position.clone()));
     }
   }
 }

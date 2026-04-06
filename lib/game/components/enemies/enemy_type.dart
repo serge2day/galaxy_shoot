@@ -3,7 +3,9 @@ import 'dart:ui';
 enum EnemyType {
   drone,
   interceptor,
-  gunship;
+  gunship,
+  swarmer,
+  carrier;
 
   double get baseHp {
     switch (this) {
@@ -13,6 +15,10 @@ enum EnemyType {
         return 3;
       case EnemyType.gunship:
         return 6;
+      case EnemyType.swarmer:
+        return 1;
+      case EnemyType.carrier:
+        return 8;
     }
   }
 
@@ -24,6 +30,10 @@ enum EnemyType {
         return 180;
       case EnemyType.gunship:
         return 70;
+      case EnemyType.swarmer:
+        return 150;
+      case EnemyType.carrier:
+        return 60;
     }
   }
 
@@ -35,6 +45,10 @@ enum EnemyType {
         return 1.2;
       case EnemyType.gunship:
         return 0.9;
+      case EnemyType.swarmer:
+        return 2.5;
+      case EnemyType.carrier:
+        return 0.7;
     }
   }
 
@@ -46,6 +60,10 @@ enum EnemyType {
         return 150;
       case EnemyType.gunship:
         return 250;
+      case EnemyType.swarmer:
+        return 50;
+      case EnemyType.carrier:
+        return 400;
     }
   }
 
@@ -57,6 +75,10 @@ enum EnemyType {
         return 32;
       case EnemyType.gunship:
         return 46;
+      case EnemyType.swarmer:
+        return 24;
+      case EnemyType.carrier:
+        return 52;
     }
   }
 
@@ -68,6 +90,10 @@ enum EnemyType {
         return 38;
       case EnemyType.gunship:
         return 44;
+      case EnemyType.swarmer:
+        return 24;
+      case EnemyType.carrier:
+        return 50;
     }
   }
 
@@ -79,6 +105,10 @@ enum EnemyType {
         return const Color(0xFFFF6F00);
       case EnemyType.gunship:
         return const Color(0xFF6A1B9A);
+      case EnemyType.swarmer:
+        return const Color(0xFF00C853);
+      case EnemyType.carrier:
+        return const Color(0xFF004D40);
     }
   }
 
@@ -90,6 +120,10 @@ enum EnemyType {
         return const Color(0xFFFFAB40);
       case EnemyType.gunship:
         return const Color(0xFFCE93D8);
+      case EnemyType.swarmer:
+        return const Color(0xFF69F0AE);
+      case EnemyType.carrier:
+        return const Color(0xFF26A69A);
     }
   }
 }

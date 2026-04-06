@@ -1,6 +1,6 @@
 import 'ship_stats.dart';
 
-enum ShipVisualStyle { balanced, swift, heavy }
+enum ShipVisualStyle { balanced, striker, guardian, ravager, phantom, titan }
 
 class ShipDefinition {
   final String id;
@@ -41,6 +41,56 @@ class ShipCatalog {
       visualStyle: ShipVisualStyle.balanced,
     ),
     ShipDefinition(
+      id: 'striker',
+      displayName: 'Striker',
+      description: 'Fast and nimble. Higher fire rate.',
+      unlockCost: 400,
+      baseStats: ShipStats(
+        maxHp: 4,
+        startingLives: 3,
+        speed: 580,
+        fireCooldown: 0.14,
+        bulletDamage: 1,
+        shipWidth: 36,
+        shipHeight: 44,
+        hitboxScale: 0.65,
+      ),
+      visualStyle: ShipVisualStyle.striker,
+    ),
+    ShipDefinition(
+      id: 'guardian',
+      displayName: 'Guardian',
+      description: 'Tough defensive ship. Extra lives.',
+      unlockCost: 600,
+      baseStats: ShipStats(
+        maxHp: 7,
+        startingLives: 4,
+        speed: 420,
+        fireCooldown: 0.20,
+        bulletDamage: 1,
+        shipWidth: 44,
+        shipHeight: 50,
+        hitboxScale: 0.75,
+      ),
+      visualStyle: ShipVisualStyle.guardian,
+    ),
+    ShipDefinition(
+      id: 'ravager',
+      displayName: 'Ravager',
+      description: 'Heavy hitter. Slower fire, bigger damage.',
+      unlockCost: 800,
+      baseStats: ShipStats(
+        maxHp: 5,
+        startingLives: 3,
+        speed: 460,
+        fireCooldown: 0.26,
+        bulletDamage: 2,
+        shipWidth: 42,
+        shipHeight: 50,
+      ),
+      visualStyle: ShipVisualStyle.ravager,
+    ),
+    ShipDefinition(
       id: 'phantom',
       displayName: 'Phantom',
       description: 'Fast and agile, but fragile.',
@@ -49,21 +99,21 @@ class ShipCatalog {
         maxHp: 3,
         startingLives: 3,
         speed: 650,
-        fireCooldown: 0.14,
+        fireCooldown: 0.15,
         bulletDamage: 1,
         shipWidth: 34,
         shipHeight: 44,
         hitboxScale: 0.6,
       ),
-      visualStyle: ShipVisualStyle.swift,
+      visualStyle: ShipVisualStyle.phantom,
     ),
     ShipDefinition(
       id: 'titan',
       displayName: 'Titan',
       description: 'Slow and tough. Hits hard.',
-      unlockCost: 800,
+      unlockCost: 1000,
       baseStats: ShipStats(
-        maxHp: 8,
+        maxHp: 9,
         startingLives: 3,
         speed: 380,
         fireCooldown: 0.22,
@@ -72,7 +122,7 @@ class ShipCatalog {
         shipHeight: 54,
         hitboxScale: 0.75,
       ),
-      visualStyle: ShipVisualStyle.heavy,
+      visualStyle: ShipVisualStyle.titan,
     ),
   ];
 

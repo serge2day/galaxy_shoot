@@ -17,7 +17,7 @@ class StageSelectScreen extends ConsumerWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
+          child: ListView(
             children: StageId.values.map((stage) {
               final unlocked = progress.isUnlocked(stage);
               final cleared = progress.isCleared(stage);
@@ -64,12 +64,18 @@ class _StageCard extends StatelessWidget {
     Color accent;
     switch (stage) {
       case StageId.stage1:
+      case StageId.stage2:
+      case StageId.stage3:
         accent = AppTheme.primaryColor;
         break;
-      case StageId.stage2:
+      case StageId.stage4:
+      case StageId.stage5:
+      case StageId.stage6:
         accent = AppTheme.accentColor;
         break;
-      case StageId.stage3:
+      case StageId.stage7:
+      case StageId.stage8:
+      case StageId.stage9:
         accent = AppTheme.dangerColor;
         break;
     }
