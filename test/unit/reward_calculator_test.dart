@@ -10,10 +10,10 @@ void main() {
       isVictory: false,
       difficulty: DifficultyTier.normal,
     );
-    expect(result.enemyKillCredits, 100); // 10 * 10
+    expect(result.enemyKillCredits, 30); // 10 * 3
     expect(result.bossDefeatCredits, 0);
     expect(result.victoryBonusCredits, 0);
-    expect(result.totalCredits, 100);
+    expect(result.totalCredits, 30);
   });
 
   test('includes boss and victory bonuses', () {
@@ -23,10 +23,10 @@ void main() {
       isVictory: true,
       difficulty: DifficultyTier.normal,
     );
-    expect(result.enemyKillCredits, 200);
-    expect(result.bossDefeatCredits, 200);
-    expect(result.victoryBonusCredits, 100);
-    expect(result.totalCredits, 500);
+    expect(result.enemyKillCredits, 60); // 20 * 3
+    expect(result.bossDefeatCredits, 80);
+    expect(result.victoryBonusCredits, 50);
+    expect(result.totalCredits, 190);
   });
 
   test('difficulty multiplier increases rewards', () {

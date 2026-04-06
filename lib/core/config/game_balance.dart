@@ -5,12 +5,12 @@ class GameBalance {
   static const int playerMaxHp = 5;
   static const int playerStartingLives = 3;
   static const double playerSpeed = 500.0;
-  static const double playerInvulnerabilityDuration = 1.5;
+  static const double playerInvulnerabilityDuration = 0.8;
   static const double playerShipWidth = 40.0;
   static const double playerShipHeight = 48.0;
 
   // Player weapon
-  static const double playerFireCooldown = 0.18; // seconds
+  static const double playerFireCooldown = 0.18;
   static const double playerBulletSpeed = 600.0;
   static const int playerBulletDamage = 1;
   static const double playerBulletWidth = 4.0;
@@ -19,8 +19,8 @@ class GameBalance {
   // Enemy
   static const int enemyHp = 2;
   static const double enemySpeed = 120.0;
-  static const double enemyFireCooldown = 1.8;
-  static const double enemyBulletSpeed = 250.0;
+  static const double enemyFireCooldown = 1.4;
+  static const double enemyBulletSpeed = 280.0;
   static const int enemyBulletDamage = 1;
   static const int enemyScoreReward = 100;
   static const double enemyShipWidth = 36.0;
@@ -32,8 +32,8 @@ class GameBalance {
   static const int bossHp = 40;
   static const double bossSpeed = 80.0;
   static const double bossFireCooldown = 0.6;
-  static const double bossBulletSpeed = 200.0;
-  static const int bossBulletDamage = 1;
+  static const double bossBulletSpeed = 220.0;
+  static const int bossBulletDamage = 2;
   static const int bossScoreReward = 2000;
   static const double bossWidth = 80.0;
   static const double bossHeight = 70.0;
@@ -42,8 +42,8 @@ class GameBalance {
   static const double bossPhase2Speed = 140.0;
 
   // Level
-  static const double levelDurationBeforeBoss = 55.0; // seconds
-  static const double waveInterval = 4.0; // seconds between waves
+  static const double levelDurationBeforeBoss = 55.0;
+  static const double waveInterval = 4.0;
   static const int enemiesPerWave = 4;
 
   // Starfield

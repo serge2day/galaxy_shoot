@@ -44,7 +44,7 @@ class ShipCatalog {
       id: 'striker',
       displayName: 'Striker',
       description: 'Fast and nimble. Higher fire rate.',
-      unlockCost: 400,
+      unlockCost: 1500,
       baseStats: ShipStats(
         maxHp: 4,
         startingLives: 3,
@@ -61,7 +61,7 @@ class ShipCatalog {
       id: 'guardian',
       displayName: 'Guardian',
       description: 'Tough defensive ship. Extra lives.',
-      unlockCost: 600,
+      unlockCost: 2000,
       baseStats: ShipStats(
         maxHp: 7,
         startingLives: 4,
@@ -78,7 +78,7 @@ class ShipCatalog {
       id: 'ravager',
       displayName: 'Ravager',
       description: 'Heavy hitter. Slower fire, bigger damage.',
-      unlockCost: 800,
+      unlockCost: 2500,
       baseStats: ShipStats(
         maxHp: 5,
         startingLives: 3,
@@ -94,7 +94,7 @@ class ShipCatalog {
       id: 'phantom',
       displayName: 'Phantom',
       description: 'Fast and agile, but fragile.',
-      unlockCost: 500,
+      unlockCost: 1800,
       baseStats: ShipStats(
         maxHp: 3,
         startingLives: 3,
@@ -111,7 +111,7 @@ class ShipCatalog {
       id: 'titan',
       displayName: 'Titan',
       description: 'Slow and tough. Hits hard.',
-      unlockCost: 1000,
+      unlockCost: 3500,
       baseStats: ShipStats(
         maxHp: 9,
         startingLives: 3,

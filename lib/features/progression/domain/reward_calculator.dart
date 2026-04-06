@@ -5,9 +5,9 @@ import 'reward_breakdown.dart';
 class RewardCalculator {
   const RewardCalculator._();
 
-  static const int creditsPerEnemyKill = 10;
-  static const int creditsPerBossDefeat = 200;
-  static const int victoryBonus = 100;
+  static const int creditsPerEnemyKill = 3;
+  static const int creditsPerBossDefeat = 80;
+  static const int victoryBonus = 50;
 
   static RewardBreakdown calculate({
     required int enemyKills,

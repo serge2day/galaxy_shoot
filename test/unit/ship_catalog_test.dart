@@ -14,14 +14,14 @@ void main() {
     expect(ship.displayName, 'Vanguard');
   });
 
-  test('phantom costs 500 credits', () {
+  test('phantom costs 1800 credits', () {
     final ship = ShipCatalog.getById('phantom');
-    expect(ship.unlockCost, 500);
+    expect(ship.unlockCost, 1800);
   });
 
-  test('titan costs 1000 credits', () {
+  test('titan costs 3500 credits', () {
     final ship = ShipCatalog.getById('titan');
-    expect(ship.unlockCost, 1000);
+    expect(ship.unlockCost, 3500);
   });
 
   test('getById falls back to first ship for unknown id', () {

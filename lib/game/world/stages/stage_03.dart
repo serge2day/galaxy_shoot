@@ -11,7 +11,7 @@ const stage03 = StageDefinition(
   starSpeed: 1.3,
   hasBoss: true,
   bossConfig: BossConfig(
-    baseHp: 60,
+    baseHp: 200,
     baseCooldown: 0.55,
     phase2HpRatio: 0.6,
     phase3HpRatio: 0.25,
