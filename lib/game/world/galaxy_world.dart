@@ -66,6 +66,7 @@ class GalaxyWorld extends Component with HasGameReference<GalaxyGame> {
     player = PlayerShip(
       stats: game.shipStats,
       visualStyle: shipDef.visualStyle,
+      shipId: shipDef.id,
     );
     player.position = Vector2(game.size.x / 2, game.size.y * 0.8);
     await add(player);

@@ -18,123 +18,162 @@ class HomeScreen extends ConsumerWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background image (falls back to dark color if missing)
-          Image.asset(
-            'assets/images/home_bg.png',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) =>
-                Container(color: AppTheme.bgDark),
-          ),
-          // Dark gradient overlay for readability
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Color(0xAA000000),
-                  Color(0xDD000000),
-                ],
-                stops: [0.0, 0.5, 1.0],
-              ),
+          // Full-screen background
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/home_bg.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(color: AppTheme.bgDark),
             ),
           ),
-          // UI content
-          SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const Spacer(flex: 3),
-                    _buildInfoRow(
-                        bestScore, wallet.credits, shipDef.displayName),
-                    const SizedBox(height: 28),
-                    _buildPlayButton(context),
-                    const SizedBox(height: 12),
-                    _buildHangarButton(context),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton.icon(
-                            onPressed: () => Navigator.of(context)
-                                .pushNamed(AppRoutes.settings),
-                            icon: const Icon(Icons.settings,
-                                color: AppTheme.textSecondary, size: 18),
-                            label: const Text(
-                              'SETTINGS',
-                              style: TextStyle(
-                                color: AppTheme.textSecondary,
-                                letterSpacing: 1,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: TextButton.icon(
-                            onPressed: () => Navigator.of(context)
-                                .pushNamed(AppRoutes.about),
-                            icon: const Icon(Icons.info_outline,
-                                color: AppTheme.textSecondary, size: 18),
-                            label: const Text(
-                              'ABOUT',
-                              style: TextStyle(
-                                color: AppTheme.textSecondary,
-                                letterSpacing: 1,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
+          // Bottom gradient for UI
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.transparent,
+                    Colors.transparent,
+                    Color(0xBB000000),
+                    Color(0xF0000000),
                   ],
+                  stops: [0.0, 0.45, 0.58, 0.78, 1.0],
                 ),
               ),
             ),
           ),
+          // UI
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const Spacer(),
+                  // Stats bar
+                  _StatsBar(
+                    bestScore: bestScore,
+                    credits: wallet.credits,
+                    shipName: shipDef.displayName,
+                  ),
+                  const SizedBox(height: 20),
+                  // PLAY button - cyan gradient with frame
+                  _StyledButton(
+                    label: 'PLAY',
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF00BCD4), Color(0xFF00E5FF)],
+                    ),
+                    borderColor: const Color(0xFF00E5FF),
+                    textColor: const Color(0xFF001820),
+                    onTap: () => Navigator.of(context)
+                        .pushReplacementNamed(AppRoutes.game),
+                  ),
+                  const SizedBox(height: 12),
+                  // HANGAR button - dark with purple border
+                  _StyledButton(
+                    label: 'HANGAR',
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1A1040), Color(0xFF2A1860)],
+                    ),
+                    borderColor: const Color(0xFF7C4DFF),
+                    textColor: const Color(0xFF00E5FF),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.hangar),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton.icon(
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed(AppRoutes.settings),
+                          icon: const Icon(Icons.settings,
+                              color: AppTheme.primaryColor, size: 18),
+                          label: const Text(
+                            'SETTINGS',
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              letterSpacing: 1,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextButton.icon(
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed(AppRoutes.about),
+                          icon: const Icon(Icons.info_outline,
+                              color: AppTheme.textSecondary, size: 18),
+                          label: const Text(
+                            'ABOUT',
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              letterSpacing: 1,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildInfoRow(int bestScore, int credits, String shipName) {
+class _StatsBar extends StatelessWidget {
+  final int bestScore;
+  final int credits;
+  final String shipName;
+
+  const _StatsBar({
+    required this.bestScore,
+    required this.credits,
+    required this.shipName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.3),
-        ),
-        color: const Color(0x60000000),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.5)),
+        color: const Color(0xA0000000),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _infoColumn('BEST', '$bestScore'),
-          Container(width: 1, height: 30, color: Colors.white12),
-          _infoColumn('CREDITS', '$credits'),
-          Container(width: 1, height: 30, color: Colors.white12),
-          _infoColumn('SHIP', shipName),
+          _col('BEST', '$bestScore'),
+          Container(width: 1, height: 32, color: Colors.white12),
+          _col('CREDITS', '$credits'),
+          Container(width: 1, height: 32, color: Colors.white12),
+          _col('ACTIVE SHIP', shipName),
         ],
       ),
     );
   }
 
-  Widget _infoColumn(String label, String value) {
+  Widget _col(String label, String value) {
     return Column(
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 10,
-            letterSpacing: 1.5,
-            color: AppTheme.textSecondary.withValues(alpha: 0.6),
+            letterSpacing: 1.2,
+            color: Color(0xFF9E9E9E),
           ),
         ),
         const SizedBox(height: 4),
@@ -143,40 +182,59 @@ class HomeScreen extends ConsumerWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: AppTheme.primaryColor,
+            color: Color(0xFF00E5FF),
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildPlayButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () =>
-            Navigator.of(context).pushReplacementNamed(AppRoutes.game),
-        child: const Text('PLAY'),
-      ),
-    );
-  }
+class _StyledButton extends StatelessWidget {
+  final String label;
+  final Gradient gradient;
+  final Color borderColor;
+  final Color textColor;
+  final VoidCallback onTap;
 
-  Widget _buildHangarButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton(
-        onPressed: () => Navigator.of(context).pushNamed(AppRoutes.hangar),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppTheme.accentColor,
-          side: const BorderSide(color: AppTheme.accentColor),
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          textStyle: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.0,
+  const _StyledButton({
+    required this.label,
+    required this.gradient,
+    required this.borderColor,
+    required this.textColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: borderColor.withValues(alpha: 0.3),
+              blurRadius: 12,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+              color: textColor,
+            ),
           ),
         ),
-        child: const Text('HANGAR'),
       ),
     );
   }

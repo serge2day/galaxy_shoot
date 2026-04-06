@@ -12,12 +12,10 @@ Widget _buildApp() {
     overrides: [
       settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       highScoreRepositoryProvider.overrideWithValue(FakeHighScoreRepository()),
-      progressionRepositoryProvider.overrideWithValue(
-        FakeProgressionRepository(),
-      ),
-      shipCatalogRepositoryProvider.overrideWithValue(
-        FakeShipCatalogRepository(),
-      ),
+      progressionRepositoryProvider
+          .overrideWithValue(FakeProgressionRepository()),
+      shipCatalogRepositoryProvider
+          .overrideWithValue(FakeShipCatalogRepository()),
       campaignRepositoryProvider.overrideWithValue(FakeCampaignRepository()),
     ],
     child: MaterialApp(theme: AppTheme.darkTheme, home: const HangarScreen()),
@@ -31,16 +29,21 @@ void main() {
     expect(find.text('HANGAR'), findsOneWidget);
   });
 
-  testWidgets('displays Vanguard ship', (tester) async {
+  testWidgets('displays SHIP SELECTION section', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    expect(find.text('Vanguard'), findsOneWidget);
+    expect(find.text('SHIP SELECTION'), findsOneWidget);
   });
 
-  testWidgets('displays SHIPS section', (tester) async {
+  testWidgets('displays UPGRADES section', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    expect(find.text('SHIPS'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('UPGRADES'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('UPGRADES'), findsOneWidget);
   });
 
   testWidgets('vanguard shows ACTIVE badge', (tester) async {
@@ -49,10 +52,9 @@ void main() {
     expect(find.text('ACTIVE'), findsOneWidget);
   });
 
-  testWidgets('locked ships show UNLOCK button', (tester) async {
+  testWidgets('displays credits in header', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    // 5 of 6 ships are locked
-    expect(find.textContaining('UNLOCK'), findsWidgets);
+    expect(find.text('0 CR'), findsOneWidget);
   });
 }

@@ -1,8 +1,10 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'dart:ui';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/config/game_balance.dart';
 import '../../../features/hangar/domain/ship_definition.dart';
@@ -20,6 +22,7 @@ class PlayerShip extends PositionComponent
   late final PlayerWeapon weapon;
   final ShipStats stats;
   final ShipVisualStyle visualStyle;
+  final String shipId;
 
   late int _hp;
   int get hp => _hp;
@@ -38,11 +41,16 @@ class PlayerShip extends PositionComponent
 
   Vector2? _dragTarget;
 
-  PlayerShip({required this.stats, this.visualStyle = ShipVisualStyle.balanced})
-    : super(
-        size: Vector2(stats.shipWidth, stats.shipHeight),
-        anchor: Anchor.center,
-      ) {
+  ui.Image? _spriteImage;
+
+  PlayerShip({
+    required this.stats,
+    this.visualStyle = ShipVisualStyle.balanced,
+    this.shipId = 'vanguard',
+  }) : super(
+          size: Vector2(stats.shipWidth, stats.shipHeight),
+          anchor: Anchor.center,
+        ) {
     _hp = stats.maxHp;
     _lives = stats.startingLives;
     weapon = PlayerWeapon(
@@ -62,6 +70,18 @@ class PlayerShip extends PositionComponent
     );
     game.setHp(_hp);
     game.setLives(_lives);
+
+    // Try to load ship sprite
+    try {
+      final data =
+          await rootBundle.load('assets/images/ship_${shipId}_game.png');
+      final codec =
+          await ui.instantiateImageCodec(data.buffer.asUint8List());
+      final frame = await codec.getNextFrame();
+      _spriteImage = frame.image;
+    } catch (_) {
+      // No sprite found, will use canvas drawing
+    }
   }
 
   void moveTo(Vector2 target) {
@@ -130,19 +150,23 @@ class PlayerShip extends PositionComponent
       canvas.drawCircle(Offset(size.x / 2, size.y / 2), size.x * 0.8, glow);
     }
 
-    switch (visualStyle) {
-      case ShipVisualStyle.balanced:
-      case ShipVisualStyle.guardian:
-      case ShipVisualStyle.ravager:
-        _renderBalanced(canvas);
-        break;
-      case ShipVisualStyle.striker:
-      case ShipVisualStyle.phantom:
-        _renderSwift(canvas);
-        break;
-      case ShipVisualStyle.titan:
-        _renderHeavy(canvas);
-        break;
+    if (_spriteImage != null) {
+      _renderSprite(canvas);
+    } else {
+      switch (visualStyle) {
+        case ShipVisualStyle.balanced:
+        case ShipVisualStyle.guardian:
+        case ShipVisualStyle.ravager:
+          _renderBalanced(canvas);
+          break;
+        case ShipVisualStyle.striker:
+        case ShipVisualStyle.phantom:
+          _renderSwift(canvas);
+          break;
+        case ShipVisualStyle.titan:
+          _renderHeavy(canvas);
+          break;
+      }
     }
 
     if (evoScale != 1.0) {
@@ -163,6 +187,21 @@ class PlayerShip extends PositionComponent
         ..strokeWidth = 2;
       canvas.drawCircle(center, radius, shieldBorder);
     }
+  }
+
+  void _renderSprite(Canvas canvas) {
+    final img = _spriteImage!;
+    final src =
+        Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble());
+    final dst = Rect.fromLTWH(0, 0, size.x, size.y);
+    canvas.drawImageRect(img, src, dst, Paint());
+
+    // Engine glow underneath sprite
+    final enginePaint = Paint()
+      ..color = const Color(0xFFFF9100)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawCircle(Offset(size.x * 0.35, size.y * 0.9), 3, enginePaint);
+    canvas.drawCircle(Offset(size.x * 0.65, size.y * 0.9), 3, enginePaint);
   }
 
   void _renderBalanced(Canvas canvas) {
