@@ -1,0 +1,190 @@
+import 'dart:math';
+
+import 'package:flame/components.dart';
+
+import '../../features/hangar/domain/ship_definition.dart';
+import '../../features/settings/domain/fire_mode.dart';
+import '../components/background/starfield_component.dart';
+import '../components/boss/boss_health_bar.dart';
+import '../components/boss/boss_ship.dart';
+import '../components/enemies/enemy_ship.dart';
+import '../components/enemies/enemy_type.dart';
+import '../components/obstacles/asteroid.dart';
+import '../components/obstacles/space_debris.dart';
+import '../components/player/player_ship.dart';
+import '../components/ui/fire_button_component.dart';
+import '../components/ui/hud_component.dart';
+import '../galaxy_game.dart';
+import 'stages/stage_definition.dart';
+
+class GalaxyWorld extends Component with HasGameReference<GalaxyGame> {
+  @override
+  // ignore: overridden_fields
+  final GalaxyGame game;
+  late PlayerShip player;
+  late HudComponent hud;
+
+  double _levelTimer = 0;
+  int _nextWaveIndex = 0;
+  bool _bossSpawned = false;
+  late List<_ResolvedWave> _waves;
+  final Random _rng = Random();
+
+  // Obstacle timers
+  double _asteroidTimer = 0;
+  double _debrisTimer = 0;
+
+  GalaxyWorld({required this.game});
+
+  @override
+  Future<void> onLoad() async {
+    final stageDef = game.stageDef;
+
+    final seed = _rng.nextInt(1000);
+    final rng = Random(seed);
+    _waves = stageDef.waves.map((template) {
+      final xStart = 40.0 + rng.nextDouble() * 50.0;
+      final xSpacing = 50.0 + rng.nextDouble() * 35.0;
+      return _ResolvedWave(
+        time: template.time,
+        count: template.count,
+        enemyType: template.enemyType,
+        movement: template.movement,
+        isElite: template.isElite,
+        xStart: xStart,
+        xSpacing: xSpacing,
+      );
+    }).toList()
+      ..sort((a, b) => a.time.compareTo(b.time));
+
+    await add(StarfieldComponent(
+      tint: stageDef.bgTint,
+      speedMultiplier: stageDef.starSpeed,
+    ));
+
+    final shipDef = ShipCatalog.getById(game.shipId);
+    player = PlayerShip(
+      stats: game.shipStats,
+      visualStyle: shipDef.visualStyle,
+    );
+    player.position = Vector2(game.size.x / 2, game.size.y * 0.8);
+    await add(player);
+
+    hud = HudComponent();
+    await add(hud);
+
+    if (game.fireMode == FireMode.manual) {
+      await add(FireButtonComponent(player: player));
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    if (game.state != GameState.playing) return;
+
+    _levelTimer += dt;
+
+    if (game.fireMode == FireMode.auto) {
+      player.weapon.fire();
+    }
+
+    while (_nextWaveIndex < _waves.length &&
+        _levelTimer >= _waves[_nextWaveIndex].time) {
+      _spawnWave(_waves[_nextWaveIndex]);
+      _nextWaveIndex++;
+    }
+
+    if (!_bossSpawned && _levelTimer >= game.stageDef.bossSpawnTime) {
+      if (game.stageDef.hasBoss) {
+        _spawnBoss();
+      } else {
+        game.triggerVictory();
+      }
+      _bossSpawned = true;
+    }
+
+    // Spawn obstacles
+    _spawnObstacles(dt);
+  }
+
+  void _spawnObstacles(double dt) {
+    final gameWidth = game.size.x;
+    final stageIdx = game.stageId.index;
+
+    // Asteroids: more frequent in later stages
+    final asteroidInterval = stageIdx < 3
+        ? 8.0
+        : stageIdx < 6
+            ? 5.0
+            : 3.5;
+    _asteroidTimer += dt;
+    if (_asteroidTimer >= asteroidInterval) {
+      _asteroidTimer = 0;
+      final x = 30.0 + _rng.nextDouble() * (gameWidth - 60);
+      final size = 20.0 + _rng.nextDouble() * 25.0 + stageIdx * 2;
+      add(Asteroid(
+        startPosition: Vector2(x, -40),
+        speed: 50 + _rng.nextDouble() * 40 + stageIdx * 5,
+        hp: 2 + stageIdx ~/ 3,
+        asteroidSize: size,
+      ));
+    }
+
+    // Debris: cosmetic only, frequent
+    _debrisTimer += dt;
+    if (_debrisTimer >= 2.0) {
+      _debrisTimer = 0;
+      final x = _rng.nextDouble() * gameWidth;
+      add(SpaceDebris(
+        startPosition: Vector2(x, -15),
+        debrisSize: 6 + _rng.nextDouble() * 10,
+      ));
+    }
+  }
+
+  void _spawnWave(_ResolvedWave wave) {
+    final gameWidth = game.size.x;
+    for (int i = 0; i < wave.count; i++) {
+      final x =
+          (wave.xStart + i * wave.xSpacing).clamp(30.0, gameWidth - 30.0);
+      add(EnemyShip(
+        startPosition: Vector2(x, -40.0 - i * 30.0),
+        movement: wave.movement,
+        enemyType: wave.enemyType,
+        isElite: wave.isElite,
+      ));
+    }
+  }
+
+  void _spawnBoss() {
+    final boss = BossShip(
+      startPosition: Vector2(game.size.x / 2, -80),
+      config: game.stageDef.bossConfig,
+      stageIndex: game.stageId.index,
+    );
+    add(boss);
+    add(BossHealthBar(boss: boss));
+  }
+}
+
+class _ResolvedWave {
+  final double time;
+  final int count;
+  final EnemyType enemyType;
+  final EnemyMovementType movement;
+  final bool isElite;
+  final double xStart;
+  final double xSpacing;
+
+  _ResolvedWave({
+    required this.time,
+    required this.count,
+    required this.enemyType,
+    required this.movement,
+    this.isElite = false,
+    required this.xStart,
+    required this.xSpacing,
+  });
+}
