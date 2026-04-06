@@ -9,6 +9,7 @@ import '../../../features/hangar/domain/ship_definition.dart';
 import '../../../features/hangar/domain/ship_stats.dart';
 import '../../galaxy_game.dart';
 import '../enemies/enemy_ship.dart';
+import '../obstacles/asteroid.dart';
 import '../pickups/pickup_item.dart';
 import '../pickups/pickup_type.dart';
 import '../projectiles/enemy_bullet.dart';
@@ -294,6 +295,9 @@ class PlayerShip extends PositionComponent
     } else if (other is EnemyShip) {
       if (_shielded) return;
       takeDamage(2);
+    } else if (other is Asteroid) {
+      if (_shielded) return;
+      takeDamage(1);
     }
   }
 

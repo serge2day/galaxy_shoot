@@ -85,10 +85,28 @@ class EnemyShip extends PositionComponent
         break;
       case EnemyMovementType.diagonal:
         position.y += speed * dt;
-        position.x += speed * 0.3 * dt;
+        position.x += speed * 0.4 * dt;
         break;
       case EnemyMovementType.swoop:
         _updateSwoop(dt);
+        break;
+      case EnemyMovementType.zigzag:
+        position.y += speed * dt;
+        // Sharp zigzag: alternate direction every 0.7s
+        final phase = ((_elapsed / 0.7).floor() % 2 == 0) ? 1.0 : -1.0;
+        position.x += speed * 0.6 * phase * dt;
+        break;
+      case EnemyMovementType.flanking:
+        // Enter from side, curve inward then down
+        if (_elapsed < 1.0) {
+          // Curve inward
+          position.x += (game.size.x / 2 - _startX) * dt * 1.2;
+          position.y += speed * 0.5 * dt;
+        } else {
+          // Then descend with gentle sine
+          position.y += speed * dt;
+          position.x += sin(_elapsed * 1.5) * 50 * dt;
+        }
         break;
     }
 

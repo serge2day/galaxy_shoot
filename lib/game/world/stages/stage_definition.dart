@@ -19,7 +19,7 @@ class WaveTemplate {
   });
 }
 
-enum EnemyMovementType { straight, sineWave, diagonal, swoop }
+enum EnemyMovementType { straight, sineWave, diagonal, swoop, zigzag, flanking }
 
 class BossConfig {
   final int baseHp;
