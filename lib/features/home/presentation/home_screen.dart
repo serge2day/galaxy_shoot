@@ -15,101 +15,90 @@ class HomeScreen extends ConsumerWidget {
     final shipDef = ref.watch(selectedShipDefinitionProvider);
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(flex: 2),
-                _buildTitle(),
-                const SizedBox(height: 12),
-                _buildSubtitle(),
-                const Spacer(),
-                _buildInfoRow(bestScore, wallet.credits, shipDef.displayName),
-                const SizedBox(height: 32),
-                _buildPlayButton(context),
-                const SizedBox(height: 12),
-                _buildHangarButton(context),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () =>
-                            Navigator.of(context).pushNamed(AppRoutes.settings),
-                        icon: const Icon(
-                          Icons.settings,
-                          color: AppTheme.textSecondary,
-                          size: 18,
-                        ),
-                        label: const Text(
-                          'SETTINGS',
-                          style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            letterSpacing: 1,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () =>
-                            Navigator.of(context).pushNamed(AppRoutes.about),
-                        icon: const Icon(
-                          Icons.info_outline,
-                          color: AppTheme.textSecondary,
-                          size: 18,
-                        ),
-                        label: const Text(
-                          'ABOUT',
-                          style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            letterSpacing: 1,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(flex: 2),
-              ],
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background image (falls back to dark color if missing)
+          Image.asset(
+            'assets/images/home_bg.png',
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) =>
+                Container(color: AppTheme.bgDark),
+          ),
+          // Dark gradient overlay for readability
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Color(0xAA000000),
+                  Color(0xDD000000),
+                ],
+                stops: [0.0, 0.5, 1.0],
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTitle() {
-    return ShaderMask(
-      shaderCallback: (bounds) => const LinearGradient(
-        colors: [AppTheme.primaryColor, AppTheme.accentColor],
-      ).createShader(bounds),
-      child: const Text(
-        'GALAXY\nSHOOTER',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 48,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 4,
-          height: 1.1,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSubtitle() {
-    return Text(
-      'v1.0',
-      style: TextStyle(
-        fontSize: 13,
-        letterSpacing: 4,
-        color: AppTheme.primaryColor.withValues(alpha: 0.5),
+          // UI content
+          SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const Spacer(flex: 3),
+                    _buildInfoRow(
+                        bestScore, wallet.credits, shipDef.displayName),
+                    const SizedBox(height: 28),
+                    _buildPlayButton(context),
+                    const SizedBox(height: 12),
+                    _buildHangarButton(context),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: () => Navigator.of(context)
+                                .pushNamed(AppRoutes.settings),
+                            icon: const Icon(Icons.settings,
+                                color: AppTheme.textSecondary, size: 18),
+                            label: const Text(
+                              'SETTINGS',
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                letterSpacing: 1,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: () => Navigator.of(context)
+                                .pushNamed(AppRoutes.about),
+                            icon: const Icon(Icons.info_outline,
+                                color: AppTheme.textSecondary, size: 18),
+                            label: const Text(
+                              'ABOUT',
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                letterSpacing: 1,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -119,8 +108,10 @@ class HomeScreen extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
-        color: AppTheme.bgCard.withValues(alpha: 0.5),
+        border: Border.all(
+          color: AppTheme.primaryColor.withValues(alpha: 0.3),
+        ),
+        color: const Color(0x60000000),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

@@ -16,7 +16,7 @@ class AboutScreen extends StatelessWidget {
           children: [
             const Center(
               child: Text(
-                'GALAXY SHOOTER',
+                'STARVANE',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -38,7 +38,7 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 32),
             _section(
               'About the Game',
-              'Galaxy Shooter is an offline portrait-mode arcade space shooter. '
+              'STARVANE is an offline portrait-mode arcade space shooter. '
                   'Battle through stages, unlock ships, upgrade your fleet, and defeat bosses.',
             ),
             _section(

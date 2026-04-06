@@ -37,12 +37,6 @@ Widget _buildApp({int bestScore = 0}) {
 }
 
 void main() {
-  testWidgets('displays game title', (tester) async {
-    await tester.pumpWidget(_buildApp());
-    await tester.pumpAndSettle();
-    expect(find.text('GALAXY\nSHOOTER'), findsOneWidget);
-  });
-
   testWidgets('displays PLAY button', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();

@@ -22,7 +22,7 @@ class GalaxyShooterApp extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: 'Galaxy Shooter',
+      title: 'STARVANE',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       initialRoute: AppRoutes.home,
