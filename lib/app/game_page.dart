@@ -31,6 +31,7 @@ class _GamePageState extends ConsumerState<GamePage> {
   StageId _stageId = StageId.stage1;
   bool _ready = false;
   bool _showPause = false;
+  int _countdown = 0;
 
   @override
   void initState() {
@@ -193,24 +194,70 @@ class _GamePageState extends ConsumerState<GamePage> {
       );
     }
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          if (_game != null) GameWidget(game: _game!),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            right: 8,
-            child: IconButton(
-              icon: const Icon(
-                Icons.pause,
-                color: AppTheme.textSecondary,
-                size: 28,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          _handlePauseRequest();
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            if (_game != null) GameWidget(game: _game!),
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(
+                  Icons.pause,
+                  color: AppTheme.textSecondary,
+                  size: 28,
+                ),
+                onPressed: _handlePauseRequest,
               ),
-              onPressed: _handlePauseRequest,
             ),
+            if (_showPause) _buildPauseOverlay(),
+            if (_countdown > 0) _buildCountdownOverlay(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _startResumeCountdown() async {
+    setState(() {
+      _showPause = false;
+      _countdown = 3;
+    });
+    for (int i = 3; i >= 1; i--) {
+      if (!mounted) return;
+      setState(() => _countdown = i);
+      await Future.delayed(const Duration(seconds: 1));
+    }
+    if (!mounted) return;
+    setState(() => _countdown = 0);
+    _game?.resume();
+  }
+
+  Widget _buildCountdownOverlay() {
+    return Container(
+      color: Colors.black38,
+      child: Center(
+        child: Text(
+          '$_countdown',
+          style: TextStyle(
+            fontSize: 72,
+            fontWeight: FontWeight.w900,
+            color: AppTheme.primaryColor.withValues(alpha: 0.9),
+            shadows: [
+              Shadow(
+                color: AppTheme.primaryColor.withValues(alpha: 0.5),
+                blurRadius: 30,
+              ),
+            ],
           ),
-          if (_showPause) _buildPauseOverlay(),
-        ],
+        ),
       ),
     );
   }
@@ -246,10 +293,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      setState(() => _showPause = false);
-                      _game?.resume();
-                    },
+                    onPressed: _startResumeCountdown,
                     child: const Text('RESUME'),
                   ),
                 ),
