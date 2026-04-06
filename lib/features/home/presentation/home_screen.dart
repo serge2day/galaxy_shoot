@@ -69,8 +69,9 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     borderColor: const Color(0xFF00E5FF),
                     textColor: const Color(0xFF001820),
-                    onTap: () => Navigator.of(context)
-                        .pushReplacementNamed(AppRoutes.game),
+                    onTap: () => Navigator.of(
+                      context,
+                    ).pushReplacementNamed(AppRoutes.game),
                   ),
                   const SizedBox(height: 12),
                   // HANGAR button - dark with purple border
@@ -89,10 +90,14 @@ class HomeScreen extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: TextButton.icon(
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed(AppRoutes.settings),
-                          icon: const Icon(Icons.settings,
-                              color: AppTheme.primaryColor, size: 18),
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).pushNamed(AppRoutes.settings),
+                          icon: const Icon(
+                            Icons.settings,
+                            color: AppTheme.primaryColor,
+                            size: 18,
+                          ),
                           label: const Text(
                             'SETTINGS',
                             style: TextStyle(
@@ -105,10 +110,13 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       Expanded(
                         child: TextButton.icon(
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed(AppRoutes.about),
-                          icon: const Icon(Icons.info_outline,
-                              color: AppTheme.textSecondary, size: 18),
+                          onPressed: () =>
+                              Navigator.of(context).pushNamed(AppRoutes.about),
+                          icon: const Icon(
+                            Icons.info_outline,
+                            color: AppTheme.textSecondary,
+                            size: 18,
+                          ),
                           label: const Text(
                             'ABOUT',
                             style: TextStyle(
@@ -149,7 +157,9 @@ class _StatsBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.5)),
+        border: Border.all(
+          color: const Color(0xFF00E5FF).withValues(alpha: 0.5),
+        ),
         color: const Color(0xA0000000),
       ),
       child: Row(

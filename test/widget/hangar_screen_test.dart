@@ -12,10 +12,12 @@ Widget _buildApp() {
     overrides: [
       settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       highScoreRepositoryProvider.overrideWithValue(FakeHighScoreRepository()),
-      progressionRepositoryProvider
-          .overrideWithValue(FakeProgressionRepository()),
-      shipCatalogRepositoryProvider
-          .overrideWithValue(FakeShipCatalogRepository()),
+      progressionRepositoryProvider.overrideWithValue(
+        FakeProgressionRepository(),
+      ),
+      shipCatalogRepositoryProvider.overrideWithValue(
+        FakeShipCatalogRepository(),
+      ),
       campaignRepositoryProvider.overrideWithValue(FakeCampaignRepository()),
     ],
     child: MaterialApp(theme: AppTheme.darkTheme, home: const HangarScreen()),

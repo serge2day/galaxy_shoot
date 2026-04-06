@@ -12,6 +12,8 @@ import '../../../features/hangar/domain/ship_stats.dart';
 import '../../galaxy_game.dart';
 import '../enemies/enemy_ship.dart';
 import '../obstacles/asteroid.dart';
+import '../obstacles/satellite_debris.dart';
+import '../obstacles/space_mine.dart';
 import '../pickups/pickup_item.dart';
 import '../pickups/pickup_type.dart';
 import '../projectiles/enemy_bullet.dart';
@@ -48,9 +50,9 @@ class PlayerShip extends PositionComponent
     this.visualStyle = ShipVisualStyle.balanced,
     this.shipId = 'vanguard',
   }) : super(
-          size: Vector2(stats.shipWidth, stats.shipHeight),
-          anchor: Anchor.center,
-        ) {
+         size: Vector2(stats.shipWidth, stats.shipHeight),
+         anchor: Anchor.center,
+       ) {
     _hp = stats.maxHp;
     _lives = stats.startingLives;
     weapon = PlayerWeapon(
@@ -73,10 +75,10 @@ class PlayerShip extends PositionComponent
 
     // Try to load ship sprite
     try {
-      final data =
-          await rootBundle.load('assets/images/ship_${shipId}_game.png');
-      final codec =
-          await ui.instantiateImageCodec(data.buffer.asUint8List());
+      final data = await rootBundle.load(
+        'assets/images/ship_${shipId}_game.png',
+      );
+      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
       final frame = await codec.getNextFrame();
       _spriteImage = frame.image;
     } catch (_) {
@@ -191,8 +193,12 @@ class PlayerShip extends PositionComponent
 
   void _renderSprite(Canvas canvas) {
     final img = _spriteImage!;
-    final src =
-        Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble());
+    final src = Rect.fromLTWH(
+      0,
+      0,
+      img.width.toDouble(),
+      img.height.toDouble(),
+    );
     final dst = Rect.fromLTWH(0, 0, size.x, size.y);
     canvas.drawImageRect(img, src, dst, Paint());
 
@@ -335,6 +341,13 @@ class PlayerShip extends PositionComponent
       if (_shielded) return;
       takeDamage(2);
     } else if (other is Asteroid) {
+      if (_shielded) return;
+      takeDamage(1);
+    } else if (other is SpaceMine) {
+      other.removeFromParent();
+      if (_shielded) return;
+      takeDamage(2);
+    } else if (other is SatelliteDebris) {
       if (_shielded) return;
       takeDamage(1);
     }

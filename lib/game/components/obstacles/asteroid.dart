@@ -24,13 +24,13 @@ class Asteroid extends PositionComponent
     this.speed = 80,
     this.hp = 3,
     this.asteroidSize = 30,
-  })  : _currentHp = hp,
-        _variant = _rng.nextInt(3),
-        super(
-          position: startPosition,
-          size: Vector2.all(asteroidSize),
-          anchor: Anchor.center,
-        );
+  }) : _currentHp = hp,
+       _variant = _rng.nextInt(3),
+       super(
+         position: startPosition,
+         size: Vector2.all(asteroidSize),
+         anchor: Anchor.center,
+       );
 
   @override
   Future<void> onLoad() async {
@@ -65,8 +65,8 @@ class Asteroid extends PositionComponent
     final bodyColor = _variant == 0
         ? const Color(0xFF5D4037)
         : _variant == 1
-            ? const Color(0xFF455A64)
-            : const Color(0xFF4E342E);
+        ? const Color(0xFF455A64)
+        : const Color(0xFF4E342E);
 
     final path = Path();
     const sides = 7;
@@ -120,11 +120,13 @@ class Asteroid extends PositionComponent
       other.removeFromParent();
       _currentHp--;
       if (_currentHp <= 0) {
-        parent?.add(ExplosionEffect(
-          position: position.clone(),
-          color: const Color(0xFF8D6E63),
-          radius: asteroidSize * 0.6,
-        ));
+        parent?.add(
+          ExplosionEffect(
+            position: position.clone(),
+            color: const Color(0xFF8D6E63),
+            radius: asteroidSize * 0.6,
+          ),
+        );
         removeFromParent();
       }
     }

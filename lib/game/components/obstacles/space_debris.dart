@@ -17,14 +17,14 @@ class SpaceDebris extends PositionComponent {
     required Vector2 startPosition,
     double? speed,
     double debrisSize = 12,
-  })  : speed = speed ?? 40 + _rng.nextDouble() * 40,
-        rotSpeed = 0.5 + _rng.nextDouble() * 2,
-        _variant = _rng.nextInt(4),
-        super(
-          position: startPosition,
-          size: Vector2.all(debrisSize),
-          anchor: Anchor.center,
-        ) {
+  }) : speed = speed ?? 40 + _rng.nextDouble() * 40,
+       rotSpeed = 0.5 + _rng.nextDouble() * 2,
+       _variant = _rng.nextInt(4),
+       super(
+         position: startPosition,
+         size: Vector2.all(debrisSize),
+         anchor: Anchor.center,
+       ) {
     _angle = _rng.nextDouble() * 6.28;
   }
 

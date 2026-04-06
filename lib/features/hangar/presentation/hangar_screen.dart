@@ -109,8 +109,7 @@ class HangarScreen extends ConsumerWidget {
             children: UpgradeConfig.definitions.map((def) {
               final currentLevel = upgradeState.levelOf(def.type);
               final isMaxed = currentLevel >= def.maxLevel;
-              final nextCost =
-                  isMaxed ? 0 : def.costForLevel(currentLevel + 1);
+              final nextCost = isMaxed ? 0 : def.costForLevel(currentLevel + 1);
               final canAfford = !isMaxed && wallet.credits >= nextCost;
 
               return _UpgradeCell(
@@ -120,8 +119,9 @@ class HangarScreen extends ConsumerWidget {
                 isMaxed: isMaxed,
                 canAfford: canAfford,
                 onBuy: () async {
-                  final ok =
-                      await ref.read(walletProvider.notifier).spend(nextCost);
+                  final ok = await ref
+                      .read(walletProvider.notifier)
+                      .spend(nextCost);
                   if (ok) {
                     await ref
                         .read(upgradeStateProvider.notifier)
@@ -153,9 +153,7 @@ class _HeroShipDisplay extends StatelessWidget {
       height: screenHeight * 0.38,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -432,12 +430,15 @@ class _UpgradeCell extends StatelessWidget {
                 GestureDetector(
                   onTap: canAfford ? onBuy : null,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
-                      color:
-                          canAfford ? const Color(0xFF7C4DFF) : Colors.white10,
+                      color: canAfford
+                          ? const Color(0xFF7C4DFF)
+                          : Colors.white10,
                     ),
                     child: Text(
                       '$cost CR',
