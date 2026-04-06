@@ -22,8 +22,8 @@ class HomeScreen extends ConsumerWidget {
           Positioned.fill(
             child: Image.asset(
               'assets/images/home_bg.png',
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
+              fit: BoxFit.fitWidth,
+              alignment: Alignment.topCenter,
               errorBuilder: (context, error, stackTrace) =>
                   Container(color: AppTheme.bgDark),
             ),
