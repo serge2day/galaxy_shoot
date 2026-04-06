@@ -2,12 +2,15 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
+import '../features/campaign/domain/stage_id.dart';
 import '../features/hangar/domain/ship_stats.dart';
 import '../features/progression/domain/difficulty_config.dart';
 import '../features/progression/domain/difficulty_tier.dart';
 import '../features/session/domain/run_result.dart';
 import '../features/settings/domain/fire_mode.dart';
 import 'world/galaxy_world.dart';
+import 'world/stages/stage_definition.dart';
+import 'world/stages/stage_registry.dart';
 
 enum GameState { playing, paused, gameOver, victory }
 
@@ -17,6 +20,8 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   final DifficultyTier difficulty;
   final DifficultyModifiers difficultyModifiers;
   final String shipId;
+  final StageId stageId;
+  final StageDefinition stageDef;
   final void Function(RunResult result) onGameEnd;
   final VoidCallback? onPauseRequested;
 
@@ -38,6 +43,9 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   bool _bossDefeated = false;
   bool get bossDefeated => _bossDefeated;
 
+  int _weaponLevel = 1;
+  int get weaponLevel => _weaponLevel;
+
   bool _rewardsClaimed = false;
 
   late GalaxyWorld galaxyWorld;
@@ -47,12 +55,14 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
     required this.shipStats,
     required this.difficulty,
     required this.shipId,
+    required this.stageId,
     required this.onGameEnd,
     this.onPauseRequested,
-  }) : difficultyModifiers = DifficultyConfig.getModifiers(difficulty);
+  }) : difficultyModifiers = DifficultyConfig.getModifiers(difficulty),
+       stageDef = StageRegistry.get(stageId);
 
   @override
-  Color backgroundColor() => const Color(0xFF050A18);
+  Color backgroundColor() => stageDef.bgTint;
 
   @override
   Future<void> onLoad() async {
@@ -78,6 +88,12 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
 
   void recordBossDefeat() {
     _bossDefeated = true;
+  }
+
+  void boostWeapon() {
+    if (_weaponLevel < 3) {
+      _weaponLevel++;
+    }
   }
 
   RunResult? claimResult() {

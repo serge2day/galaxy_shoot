@@ -9,11 +9,12 @@ import '../components/background/starfield_component.dart';
 import '../components/boss/boss_health_bar.dart';
 import '../components/boss/boss_ship.dart';
 import '../components/enemies/enemy_ship.dart';
+import '../components/enemies/enemy_type.dart';
 import '../components/player/player_ship.dart';
 import '../components/ui/fire_button_component.dart';
 import '../components/ui/hud_component.dart';
 import '../galaxy_game.dart';
-import 'spawn_timeline.dart';
+import 'stages/stage_definition.dart';
 
 class GalaxyWorld extends Component
     with HasGameReference<GalaxyGame>, DragCallbacks {
@@ -26,16 +27,37 @@ class GalaxyWorld extends Component
   double _levelTimer = 0;
   int _nextWaveIndex = 0;
   bool _bossSpawned = false;
-  late List<SpawnEvent> _waves;
+  late List<_ResolvedWave> _waves;
   final Random _rng = Random();
 
   GalaxyWorld({required this.game});
 
   @override
   Future<void> onLoad() async {
-    _waves = SpawnTimeline.buildLevel1(seed: _rng.nextInt(1000));
+    final stageDef = game.stageDef;
 
-    await add(StarfieldComponent());
+    // Build resolved waves with slight seeded variation
+    final seed = _rng.nextInt(1000);
+    final rng = Random(seed);
+    _waves = stageDef.waves.map((template) {
+      final xStart = 40.0 + rng.nextDouble() * 50.0;
+      final xSpacing = 50.0 + rng.nextDouble() * 35.0;
+      return _ResolvedWave(
+        time: template.time,
+        count: template.count,
+        enemyType: template.enemyType,
+        movement: template.movement,
+        xStart: xStart,
+        xSpacing: xSpacing,
+      );
+    }).toList()..sort((a, b) => a.time.compareTo(b.time));
+
+    await add(
+      StarfieldComponent(
+        tint: stageDef.bgTint,
+        speedMultiplier: stageDef.starSpeed,
+      ),
+    );
 
     final shipDef = ShipCatalog.getById(game.shipId);
     player = PlayerShip(
@@ -71,30 +93,32 @@ class GalaxyWorld extends Component
       _nextWaveIndex++;
     }
 
-    if (!_bossSpawned && _levelTimer >= SpawnTimeline.bossSpawnTime) {
+    if (!_bossSpawned && _levelTimer >= game.stageDef.bossSpawnTime) {
       _spawnBoss();
       _bossSpawned = true;
     }
   }
 
-  void _spawnWave(SpawnEvent event) {
+  void _spawnWave(_ResolvedWave wave) {
     final gameWidth = game.size.x;
-    for (int i = 0; i < event.count; i++) {
-      final x = (event.xStart + i * event.xSpacing).clamp(
-        30.0,
-        gameWidth - 30.0,
-      );
+    for (int i = 0; i < wave.count; i++) {
+      final x = (wave.xStart + i * wave.xSpacing).clamp(30.0, gameWidth - 30.0);
       add(
         EnemyShip(
           startPosition: Vector2(x, -40.0 - i * 30.0),
-          movement: event.movement,
+          movement: wave.movement,
+          enemyType: wave.enemyType,
         ),
       );
     }
   }
 
   void _spawnBoss() {
-    final boss = BossShip(startPosition: Vector2(game.size.x / 2, -80));
+    final boss = BossShip(
+      startPosition: Vector2(game.size.x / 2, -80),
+      config: game.stageDef.bossConfig,
+      stageIndex: game.stageId.index,
+    );
     add(boss);
     add(BossHealthBar(boss: boss));
   }
@@ -116,4 +140,22 @@ class GalaxyWorld extends Component
     super.onDragEnd(event);
     player.stopMoving();
   }
+}
+
+class _ResolvedWave {
+  final double time;
+  final int count;
+  final EnemyType enemyType;
+  final EnemyMovementType movement;
+  final double xStart;
+  final double xSpacing;
+
+  _ResolvedWave({
+    required this.time,
+    required this.count,
+    required this.enemyType,
+    required this.movement,
+    required this.xStart,
+    required this.xSpacing,
+  });
 }

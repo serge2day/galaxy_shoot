@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:galaxy_shoot/features/campaign/domain/stage_id.dart';
 import 'package:galaxy_shoot/features/hangar/domain/ship_stats.dart';
 import 'package:galaxy_shoot/features/progression/domain/difficulty_tier.dart';
 import 'package:galaxy_shoot/features/settings/domain/fire_mode.dart';
@@ -20,6 +21,7 @@ void main() {
       ),
       difficulty: DifficultyTier.normal,
       shipId: 'vanguard',
+      stageId: StageId.stage1,
       onGameEnd: (_) => endCallCount++,
     );
 
@@ -48,6 +50,7 @@ void main() {
       ),
       difficulty: DifficultyTier.normal,
       shipId: 'vanguard',
+      stageId: StageId.stage1,
       onGameEnd: (_) {},
     );
 

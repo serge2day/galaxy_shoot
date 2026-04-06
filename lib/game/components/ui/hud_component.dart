@@ -38,6 +38,16 @@ class HudComponent extends PositionComponent with HasGameReference<GalaxyGame> {
       12,
       const Color(0xFF69F0AE),
     );
+
+    // Weapon level
+    _drawText(
+      canvas,
+      'WPN: ${game.weaponLevel}',
+      screenW - 120,
+      78,
+      12,
+      const Color(0xFFFFD600),
+    );
   }
 
   void _drawHpBar(Canvas canvas, double x, double y, double w, double h) {

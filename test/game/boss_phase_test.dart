@@ -29,10 +29,11 @@ void main() {
   });
 
   test('BossPhase enum has all phases', () {
-    expect(BossPhase.values.length, 3);
+    expect(BossPhase.values.length, 4);
     expect(BossPhase.values, contains(BossPhase.entering));
     expect(BossPhase.values, contains(BossPhase.phase1));
     expect(BossPhase.values, contains(BossPhase.phase2));
+    expect(BossPhase.values, contains(BossPhase.phase3));
   });
 
   test('boss phase 2 fire cooldown is shorter', () {

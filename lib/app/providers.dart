@@ -3,6 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/persistence/key_value_store.dart';
 import '../core/persistence/shared_prefs_store.dart';
+import '../features/campaign/data/local_campaign_repository.dart';
+import '../features/campaign/domain/campaign_repository.dart';
+import '../features/campaign/domain/stage_id.dart';
+import '../features/campaign/domain/stage_progress.dart';
 import '../features/hangar/data/local_ship_catalog_repository.dart';
 import '../features/hangar/domain/ship_catalog_repository.dart';
 import '../features/hangar/domain/ship_definition.dart';
@@ -26,7 +30,7 @@ final keyValueStoreProvider = Provider<KeyValueStore>((ref) {
   return SharedPrefsStore(ref.watch(sharedPreferencesProvider));
 });
 
-// --- Settings (Phase 1) ---
+// --- Settings ---
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return LocalSettingsRepository(ref.watch(keyValueStoreProvider));
@@ -79,7 +83,7 @@ class BestScoreNotifier extends StateNotifier<int> {
   }
 }
 
-// --- Phase 2: Progression ---
+// --- Progression ---
 
 final progressionRepositoryProvider = Provider<ProgressionRepository>((ref) {
   return LocalProgressionRepository(ref.watch(keyValueStoreProvider));
@@ -115,7 +119,7 @@ class WalletNotifier extends StateNotifier<CurrencyWallet> {
   }
 }
 
-// --- Phase 2: Upgrades ---
+// --- Upgrades ---
 
 final upgradeStateProvider =
     StateNotifierProvider<UpgradeStateNotifier, UpgradeState>((ref) {
@@ -139,7 +143,7 @@ class UpgradeStateNotifier extends StateNotifier<UpgradeState> {
   }
 }
 
-// --- Phase 2: Ships ---
+// --- Ships ---
 
 final shipCatalogRepositoryProvider = Provider<ShipCatalogRepository>((ref) {
   return LocalShipCatalogRepository(ref.watch(keyValueStoreProvider));
@@ -192,4 +196,77 @@ class SelectedShipNotifier extends StateNotifier<String> {
 final selectedShipDefinitionProvider = Provider<ShipDefinition>((ref) {
   final shipId = ref.watch(selectedShipProvider);
   return ShipCatalog.getById(shipId);
+});
+
+// --- Campaign ---
+
+final campaignRepositoryProvider = Provider<CampaignRepository>((ref) {
+  return LocalCampaignRepository(ref.watch(keyValueStoreProvider));
+});
+
+final campaignProgressProvider =
+    StateNotifierProvider<CampaignProgressNotifier, StageProgress>((ref) {
+      return CampaignProgressNotifier(ref.watch(campaignRepositoryProvider));
+    });
+
+class CampaignProgressNotifier extends StateNotifier<StageProgress> {
+  final CampaignRepository _repository;
+
+  CampaignProgressNotifier(this._repository) : super(const StageProgress()) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    state = await _repository.getProgress();
+  }
+
+  Future<void> clearStage(String stageIdName, int score) async {
+    final stageId = _parseStageId(stageIdName);
+    await _repository.clearStage(stageId, score);
+    state = await _repository.getProgress();
+  }
+
+  Future<void> updateBestScore(String stageIdName, int score) async {
+    final stageId = _parseStageId(stageIdName);
+    await _repository.updateBestScore(stageId, score);
+    state = await _repository.getProgress();
+  }
+
+  static StageId _parseStageId(String name) {
+    return StageId.fromString(name);
+  }
+}
+
+// --- Reset Progress ---
+
+final resetProgressProvider = Provider<Future<void> Function()>((ref) {
+  return () async {
+    final campaignRepo = ref.read(campaignRepositoryProvider);
+    final progressionRepo = ref.read(progressionRepositoryProvider);
+    final store = ref.read(keyValueStoreProvider);
+
+    // Reset campaign
+    await campaignRepo.resetAll();
+
+    // Reset wallet
+    await progressionRepo.saveWallet(const CurrencyWallet());
+
+    // Reset upgrades
+    await progressionRepo.saveUpgradeState(const UpgradeState());
+
+    // Reset ships - clear and re-default
+    await store.remove('unlocked_ships');
+    await store.remove('selected_ship');
+
+    // Reset high score
+    await store.setInt('best_score', 0);
+
+    // Reload all providers
+    ref.invalidate(walletProvider);
+    ref.invalidate(upgradeStateProvider);
+    ref.invalidate(unlockedShipsProvider);
+    ref.invalidate(selectedShipProvider);
+    ref.invalidate(campaignProgressProvider);
+    ref.invalidate(bestScoreProvider);
+  };
 });

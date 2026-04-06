@@ -24,16 +24,57 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 const Spacer(flex: 2),
                 _buildTitle(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 _buildSubtitle(),
                 const Spacer(),
                 _buildInfoRow(bestScore, wallet.credits, shipDef.displayName),
                 const SizedBox(height: 32),
-                _buildNewGameButton(context),
+                _buildPlayButton(context),
                 const SizedBox(height: 12),
                 _buildHangarButton(context),
                 const SizedBox(height: 12),
-                _buildSettingsButton(context),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed(AppRoutes.settings),
+                        icon: const Icon(
+                          Icons.settings,
+                          color: AppTheme.textSecondary,
+                          size: 18,
+                        ),
+                        label: const Text(
+                          'SETTINGS',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed(AppRoutes.about),
+                        icon: const Icon(
+                          Icons.info_outline,
+                          color: AppTheme.textSecondary,
+                          size: 18,
+                        ),
+                        label: const Text(
+                          'ABOUT',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const Spacer(flex: 2),
               ],
             ),
@@ -64,11 +105,11 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildSubtitle() {
     return Text(
-      'PHASE 2',
+      'v1.0',
       style: TextStyle(
-        fontSize: 14,
-        letterSpacing: 6,
-        color: AppTheme.primaryColor.withValues(alpha: 0.6),
+        fontSize: 13,
+        letterSpacing: 4,
+        color: AppTheme.primaryColor.withValues(alpha: 0.5),
       ),
     );
   }
@@ -118,13 +159,13 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildNewGameButton(BuildContext context) {
+  Widget _buildPlayButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () =>
             Navigator.of(context).pushReplacementNamed(AppRoutes.game),
-        child: const Text('NEW GAME'),
+        child: const Text('PLAY'),
       ),
     );
   }
@@ -145,17 +186,6 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
         child: const Text('HANGAR'),
-      ),
-    );
-  }
-
-  Widget _buildSettingsButton(BuildContext context) {
-    return TextButton.icon(
-      onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
-      icon: const Icon(Icons.settings, color: AppTheme.textSecondary),
-      label: const Text(
-        'SETTINGS',
-        style: TextStyle(color: AppTheme.textSecondary, letterSpacing: 1.5),
       ),
     );
   }

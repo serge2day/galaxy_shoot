@@ -21,6 +21,7 @@ Widget _buildApp({int bestScore = 0}) {
       shipCatalogRepositoryProvider.overrideWithValue(
         FakeShipCatalogRepository(),
       ),
+      campaignRepositoryProvider.overrideWithValue(FakeCampaignRepository()),
     ],
     child: MaterialApp(
       theme: AppTheme.darkTheme,
@@ -29,6 +30,7 @@ Widget _buildApp({int bestScore = 0}) {
         AppRoutes.settings: (_) => const Scaffold(body: Text('Settings')),
         AppRoutes.game: (_) => const Scaffold(body: Text('Game')),
         AppRoutes.hangar: (_) => const Scaffold(body: Text('Hangar')),
+        AppRoutes.about: (_) => const Scaffold(body: Text('About')),
       },
     ),
   );
@@ -41,10 +43,10 @@ void main() {
     expect(find.text('GALAXY\nSHOOTER'), findsOneWidget);
   });
 
-  testWidgets('displays NEW GAME button', (tester) async {
+  testWidgets('displays PLAY button', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    expect(find.text('NEW GAME'), findsOneWidget);
+    expect(find.text('PLAY'), findsOneWidget);
   });
 
   testWidgets('displays SETTINGS button', (tester) async {

@@ -9,6 +9,8 @@ import '../../../features/hangar/domain/ship_definition.dart';
 import '../../../features/hangar/domain/ship_stats.dart';
 import '../../galaxy_game.dart';
 import '../enemies/enemy_ship.dart';
+import '../pickups/pickup_item.dart';
+import '../pickups/pickup_type.dart';
 import '../projectiles/enemy_bullet.dart';
 import 'player_weapon.dart';
 
@@ -29,6 +31,9 @@ class PlayerShip extends PositionComponent
   double _invulnerableTimer = 0;
   double _blinkTimer = 0;
   bool _visible = true;
+
+  bool _shielded = false;
+  double _shieldTimer = 0;
 
   Vector2? _dragTarget;
 
@@ -80,6 +85,13 @@ class PlayerShip extends PositionComponent
       }
     }
 
+    if (_shielded) {
+      _shieldTimer -= dt;
+      if (_shieldTimer <= 0) {
+        _shielded = false;
+      }
+    }
+
     if (_dragTarget != null) {
       final diff = _dragTarget! - position;
       final dist = diff.length;
@@ -109,6 +121,21 @@ class PlayerShip extends PositionComponent
       case ShipVisualStyle.heavy:
         _renderHeavy(canvas);
         break;
+    }
+
+    // Shield overlay
+    if (_shielded) {
+      final center = Offset(size.x / 2, size.y / 2);
+      final radius = size.x * 0.7;
+      final shieldPaint = Paint()
+        ..color = const Color(0x4000B0FF)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, radius, shieldPaint);
+      final shieldBorder = Paint()
+        ..color = const Color(0xAA00B0FF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+      canvas.drawCircle(center, radius, shieldBorder);
     }
   }
 
@@ -225,13 +252,39 @@ class PlayerShip extends PositionComponent
     PositionComponent other,
   ) {
     super.onCollisionStart(intersectionPoints, other);
+
+    // Pickups can be collected regardless of invulnerability
+    if (other is PickupItem) {
+      other.removeFromParent();
+      _applyPickup(other.type);
+      return;
+    }
+
     if (_invulnerable) return;
 
     if (other is EnemyBullet) {
       other.removeFromParent();
+      if (_shielded) return;
       takeDamage(other.damage);
     } else if (other is EnemyShip) {
+      if (_shielded) return;
       takeDamage(2);
+    }
+  }
+
+  void _applyPickup(PickupType type) {
+    switch (type) {
+      case PickupType.weaponBoost:
+        game.boostWeapon();
+        break;
+      case PickupType.shield:
+        _shielded = true;
+        _shieldTimer = 3.0;
+        break;
+      case PickupType.heal:
+        _hp = stats.maxHp;
+        game.setHp(_hp);
+        break;
     }
   }
 

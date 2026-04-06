@@ -1,4 +1,7 @@
 import 'package:galaxy_shoot/core/persistence/key_value_store.dart';
+import 'package:galaxy_shoot/features/campaign/domain/campaign_repository.dart';
+import 'package:galaxy_shoot/features/campaign/domain/stage_id.dart';
+import 'package:galaxy_shoot/features/campaign/domain/stage_progress.dart';
 import 'package:galaxy_shoot/features/hangar/domain/ship_catalog_repository.dart';
 import 'package:galaxy_shoot/features/high_score/domain/high_score_repository.dart';
 import 'package:galaxy_shoot/features/progression/domain/currency_wallet.dart';
@@ -49,7 +52,7 @@ class FakeHighScoreRepository implements HighScoreRepository {
 class FakeProgressionRepository implements ProgressionRepository {
   CurrencyWallet _wallet = const CurrencyWallet();
   UpgradeState _upgrades = const UpgradeState();
-  int _version = 2;
+  int _version = 3;
 
   @override
   Future<CurrencyWallet> getWallet() async => _wallet;
@@ -87,4 +90,34 @@ class FakeShipCatalogRepository implements ShipCatalogRepository {
 
   @override
   Future<void> selectShip(String shipId) async => _selected = shipId;
+}
+
+class FakeCampaignRepository implements CampaignRepository {
+  StageProgress _progress = const StageProgress();
+  bool _tutorialDone = false;
+
+  @override
+  Future<StageProgress> getProgress() async => _progress;
+
+  @override
+  Future<void> clearStage(StageId stage, int score) async {
+    _progress = _progress.withClear(stage, score);
+  }
+
+  @override
+  Future<void> updateBestScore(StageId stage, int score) async {
+    _progress = _progress.withBestScore(stage, score);
+  }
+
+  @override
+  Future<bool> isTutorialCompleted() async => _tutorialDone;
+
+  @override
+  Future<void> setTutorialCompleted() async => _tutorialDone = true;
+
+  @override
+  Future<void> resetAll() async {
+    _progress = const StageProgress();
+    _tutorialDone = false;
+  }
 }

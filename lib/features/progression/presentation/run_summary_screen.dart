@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../features/campaign/domain/stage_id.dart';
 import '../../session/domain/run_result.dart';
 import '../domain/difficulty_tier.dart';
 import '../domain/reward_breakdown.dart';
@@ -12,6 +13,7 @@ class RunSummaryData {
   final String shipName;
   final int previousBestScore;
   final int newBestScore;
+  final StageId stageId;
 
   const RunSummaryData({
     required this.result,
@@ -20,6 +22,7 @@ class RunSummaryData {
     required this.shipName,
     required this.previousBestScore,
     required this.newBestScore,
+    required this.stageId,
   });
 
   bool get isNewBest => result.score > previousBestScore;
@@ -30,6 +33,7 @@ class RunSummaryScreen extends StatelessWidget {
   final VoidCallback onPlayAgain;
   final VoidCallback onHome;
   final VoidCallback onHangar;
+  final VoidCallback? onNextStage;
 
   const RunSummaryScreen({
     super.key,
@@ -37,6 +41,7 @@ class RunSummaryScreen extends StatelessWidget {
     required this.onPlayAgain,
     required this.onHome,
     required this.onHangar,
+    this.onNextStage,
   });
 
   @override
@@ -75,6 +80,21 @@ class RunSummaryScreen extends StatelessWidget {
                     child: const Text('PLAY AGAIN'),
                   ),
                 ),
+                if (onNextStage != null) ...[
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: onNextStage,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.successColor,
+                        side: const BorderSide(color: AppTheme.successColor),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('NEXT STAGE'),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -138,6 +158,8 @@ class RunSummaryScreen extends StatelessWidget {
             ),
           const Divider(height: 20, color: Colors.white10),
           _infoRow('Ship', data.shipName),
+          const SizedBox(height: 6),
+          _infoRow('Stage', data.stageId.displayName),
           const SizedBox(height: 6),
           _infoRow('Difficulty', data.difficulty.displayName),
           const SizedBox(height: 6),

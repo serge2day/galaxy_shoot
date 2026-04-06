@@ -30,7 +30,15 @@ void main() {
     expect(await repo.getSaveVersion(), SaveMigration.currentVersion);
   });
 
-  test('current version is 2', () {
-    expect(SaveMigration.currentVersion, 2);
+  test('current version is 3', () {
+    expect(SaveMigration.currentVersion, 3);
+  });
+
+  test('migration from Phase 2 (v2) to Phase 3 (v3)', () async {
+    final repo = FakeProgressionRepository();
+    await repo.setSaveVersion(2);
+
+    await SaveMigration(repo).migrate();
+    expect(await repo.getSaveVersion(), 3);
   });
 }

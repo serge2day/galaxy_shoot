@@ -18,6 +18,7 @@ Widget _buildApp() {
       shipCatalogRepositoryProvider.overrideWithValue(
         FakeShipCatalogRepository(),
       ),
+      campaignRepositoryProvider.overrideWithValue(FakeCampaignRepository()),
     ],
     child: MaterialApp(theme: AppTheme.darkTheme, home: const SettingsScreen()),
   );
@@ -37,12 +38,22 @@ void main() {
     expect(find.text('Manual Fire'), findsOneWidget);
   });
 
-  testWidgets('tapping manual fire selects it', (tester) async {
+  testWidgets('displays audio toggles', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Manual Fire'));
+    expect(find.text('Music'), findsOneWidget);
+    expect(find.text('Sound Effects'), findsOneWidget);
+    expect(find.text('Haptics'), findsOneWidget);
+  });
+
+  testWidgets('displays reset progress button', (tester) async {
+    await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    final manualIcons = find.byIcon(Icons.radio_button_checked);
-    expect(manualIcons, findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('RESET ALL PROGRESS'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('RESET ALL PROGRESS'), findsOneWidget);
   });
 }

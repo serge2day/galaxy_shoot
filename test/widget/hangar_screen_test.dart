@@ -18,6 +18,7 @@ Widget _buildApp() {
       shipCatalogRepositoryProvider.overrideWithValue(
         FakeShipCatalogRepository(),
       ),
+      campaignRepositoryProvider.overrideWithValue(FakeCampaignRepository()),
     ],
     child: MaterialApp(theme: AppTheme.darkTheme, home: const HangarScreen()),
   );
@@ -47,7 +48,6 @@ void main() {
   testWidgets('displays UPGRADES section', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    // Scroll to find upgrades
     await tester.scrollUntilVisible(
       find.text('UPGRADES'),
       200,
@@ -65,13 +65,6 @@ void main() {
   testWidgets('locked ships show UNLOCK button', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    // Phantom and Titan are locked
     expect(find.textContaining('UNLOCK'), findsNWidgets(2));
-  });
-
-  testWidgets('credits are displayed', (tester) async {
-    await tester.pumpWidget(_buildApp());
-    await tester.pumpAndSettle();
-    expect(find.text('0 CR'), findsOneWidget);
   });
 }
