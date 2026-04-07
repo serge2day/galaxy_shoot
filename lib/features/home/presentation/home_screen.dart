@@ -61,9 +61,9 @@ class HomeScreen extends ConsumerWidget {
                     shipName: shipDef.displayName,
                   ),
                   const SizedBox(height: 20),
-                  // PLAY button - cyan gradient with frame
+                  // Campaign button
                   _StyledButton(
-                    label: 'PLAY',
+                    label: 'CAMPAIGN',
                     gradient: const LinearGradient(
                       colors: [Color(0xFF00BCD4), Color(0xFF00E5FF)],
                     ),
@@ -73,8 +73,21 @@ class HomeScreen extends ConsumerWidget {
                       context,
                     ).pushReplacementNamed(AppRoutes.game),
                   ),
-                  const SizedBox(height: 12),
-                  // HANGAR button - dark with purple border
+                  const SizedBox(height: 10),
+                  // Endless Galaxy Mode button
+                  _StyledButton(
+                    label: 'ENDLESS GALAXY',
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1A0040), Color(0xFF3A1880)],
+                    ),
+                    borderColor: const Color(0xFFFF6D00),
+                    textColor: const Color(0xFFFF6D00),
+                    onTap: () => Navigator.of(
+                      context,
+                    ).pushReplacementNamed(AppRoutes.endless),
+                  ),
+                  const SizedBox(height: 10),
+                  // HANGAR button
                   _StyledButton(
                     label: 'HANGAR',
                     gradient: const LinearGradient(

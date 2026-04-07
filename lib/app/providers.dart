@@ -7,6 +7,8 @@ import '../features/campaign/data/local_campaign_repository.dart';
 import '../features/campaign/domain/campaign_repository.dart';
 import '../features/campaign/domain/stage_id.dart';
 import '../features/campaign/domain/stage_progress.dart';
+import '../features/endless/data/local_endless_repository.dart';
+import '../features/endless/domain/endless_progress.dart';
 import '../features/hangar/data/local_ship_catalog_repository.dart';
 import '../features/hangar/domain/ship_catalog_repository.dart';
 import '../features/hangar/domain/ship_definition.dart';
@@ -237,6 +239,39 @@ class CampaignProgressNotifier extends StateNotifier<StageProgress> {
   }
 }
 
+// --- Endless ---
+
+final endlessRepositoryProvider = Provider<LocalEndlessRepository>((ref) {
+  return LocalEndlessRepository(ref.watch(keyValueStoreProvider));
+});
+
+final endlessProgressProvider =
+    StateNotifierProvider<EndlessProgressNotifier, EndlessProgress>((ref) {
+      return EndlessProgressNotifier(ref.watch(endlessRepositoryProvider));
+    });
+
+class EndlessProgressNotifier extends StateNotifier<EndlessProgress> {
+  final LocalEndlessRepository _repository;
+
+  EndlessProgressNotifier(this._repository) : super(const EndlessProgress()) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    state = await _repository.load();
+  }
+
+  Future<void> unlock() async {
+    state = state.copyWith(unlocked: true);
+    await _repository.save(state);
+  }
+
+  Future<void> recordSectorCleared(int sector, int score, String shipId) async {
+    state = state.withSectorCleared(sector, score, shipId);
+    await _repository.save(state);
+  }
+}
+
 // --- Reset Progress ---
 
 final resetProgressProvider = Provider<Future<void> Function()>((ref) {
@@ -261,7 +296,11 @@ final resetProgressProvider = Provider<Future<void> Function()>((ref) {
     // Reset high score
     await store.setInt('best_score', 0);
 
+    // Reset endless
+    await ref.read(endlessRepositoryProvider).reset();
+
     // Reload all providers
+    ref.invalidate(endlessProgressProvider);
     ref.invalidate(walletProvider);
     ref.invalidate(upgradeStateProvider);
     ref.invalidate(unlockedShipsProvider);

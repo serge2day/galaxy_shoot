@@ -41,122 +41,127 @@ class HangarScreen extends ConsumerWidget {
               }
             },
           ),
-        title: const Text(
-          'HANGAR',
-          style: TextStyle(fontSize: 22, letterSpacing: 2),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: Text(
-                '${wallet.credits} CR',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
+          title: const Text(
+            'HANGAR',
+            style: TextStyle(fontSize: 22, letterSpacing: 2),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Center(
+                child: Text(
+                  '${wallet.credits} CR',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryColor,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          // Large hero ship display
-          _HeroShipDisplay(ship: selectedShip),
-          const SizedBox(height: 14),
-          const Text(
-            'SHIP SELECTION',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
-              letterSpacing: 1.5,
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          children: [
+            // Large hero ship display
+            _HeroShipDisplay(ship: selectedShip),
+            const SizedBox(height: 14),
+            const Text(
+              'SHIP SELECTION',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textPrimary,
+                letterSpacing: 1.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          // Compact horizontal ship cards
-          SizedBox(
-            height: 200,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: ShipCatalog.ships.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final ship = ShipCatalog.ships[index];
-                final isUnlocked = unlockedIds.contains(ship.id);
-                final isSelected = ship.id == selectedId;
-                return _ShipCard(
-                  ship: ship,
-                  isUnlocked: isUnlocked,
-                  isSelected: isSelected,
-                  credits: wallet.credits,
-                  onSelect: () =>
-                      ref.read(selectedShipProvider.notifier).select(ship.id),
-                  onUnlock: () async {
+            const SizedBox(height: 8),
+            // Compact horizontal ship cards
+            SizedBox(
+              height: 200,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: ShipCatalog.ships.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final ship = ShipCatalog.ships[index];
+                  final isUnlocked = unlockedIds.contains(ship.id);
+                  final isSelected = ship.id == selectedId;
+                  return _ShipCard(
+                    ship: ship,
+                    isUnlocked: isUnlocked,
+                    isSelected: isSelected,
+                    credits: wallet.credits,
+                    onSelect: () =>
+                        ref.read(selectedShipProvider.notifier).select(ship.id),
+                    onUnlock: () async {
+                      final ok = await ref
+                          .read(walletProvider.notifier)
+                          .spend(ship.unlockCost);
+                      if (ok) {
+                        await ref
+                            .read(unlockedShipsProvider.notifier)
+                            .unlock(ship.id);
+                      }
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'UPGRADES',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textPrimary,
+                letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 2.4,
+              children: UpgradeConfig.definitions.map((def) {
+                final currentLevel = upgradeState.levelOf(def.type);
+                final isMaxed = currentLevel >= def.maxLevel;
+                final nextCost = isMaxed
+                    ? 0
+                    : def.costForLevel(currentLevel + 1);
+                final canAfford = !isMaxed && wallet.credits >= nextCost;
+
+                return _UpgradeCell(
+                  def: def,
+                  currentLevel: currentLevel,
+                  cost: nextCost,
+                  isMaxed: isMaxed,
+                  canAfford: canAfford,
+                  onBuy: () async {
                     final ok = await ref
                         .read(walletProvider.notifier)
-                        .spend(ship.unlockCost);
+                        .spend(nextCost);
                     if (ok) {
                       await ref
-                          .read(unlockedShipsProvider.notifier)
-                          .unlock(ship.id);
+                          .read(upgradeStateProvider.notifier)
+                          .applyUpgrade(
+                            upgradeState.withUpgrade(
+                              def.type,
+                              currentLevel + 1,
+                            ),
+                          );
                     }
                   },
                 );
-              },
+              }).toList(),
             ),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'UPGRADES',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
-              letterSpacing: 1.5,
-            ),
-          ),
-          const SizedBox(height: 8),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 2.4,
-            children: UpgradeConfig.definitions.map((def) {
-              final currentLevel = upgradeState.levelOf(def.type);
-              final isMaxed = currentLevel >= def.maxLevel;
-              final nextCost = isMaxed ? 0 : def.costForLevel(currentLevel + 1);
-              final canAfford = !isMaxed && wallet.credits >= nextCost;
-
-              return _UpgradeCell(
-                def: def,
-                currentLevel: currentLevel,
-                cost: nextCost,
-                isMaxed: isMaxed,
-                canAfford: canAfford,
-                onBuy: () async {
-                  final ok = await ref
-                      .read(walletProvider.notifier)
-                      .spend(nextCost);
-                  if (ok) {
-                    await ref
-                        .read(upgradeStateProvider.notifier)
-                        .applyUpgrade(
-                          upgradeState.withUpgrade(def.type, currentLevel + 1),
-                        );
-                  }
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }

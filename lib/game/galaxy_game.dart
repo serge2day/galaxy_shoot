@@ -23,7 +23,7 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   final DifficultyModifiers difficultyModifiers;
   final String shipId;
   final StageId stageId;
-  final StageDefinition stageDef;
+  late StageDefinition stageDef;
   final void Function(RunResult result) onGameEnd;
   final VoidCallback? onPauseRequested;
 

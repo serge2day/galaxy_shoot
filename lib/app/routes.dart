@@ -5,6 +5,7 @@ import '../features/campaign/presentation/stage_select_screen.dart';
 import '../features/hangar/presentation/hangar_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import 'endless_game_page.dart';
 import 'game_page.dart';
 
 class AppRoutes {
@@ -16,6 +17,7 @@ class AppRoutes {
   static const String hangar = '/hangar';
   static const String stageSelect = '/stage-select';
   static const String about = '/about';
+  static const String endless = '/endless';
 
   static Map<String, WidgetBuilder> get routes => {
     home: (_) => const HomeScreen(),
@@ -24,5 +26,6 @@ class AppRoutes {
     hangar: (_) => const HangarScreen(),
     stageSelect: (_) => const StageSelectScreen(),
     about: (_) => const AboutScreen(),
+    endless: (_) => const EndlessGamePage(),
   };
 }
