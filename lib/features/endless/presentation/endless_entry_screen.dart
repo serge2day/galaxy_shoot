@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
 import '../domain/biome_definition.dart';
+import '../domain/sector_definition.dart';
 import '../generation/sector_generator.dart';
 
 class EndlessEntryScreen extends ConsumerWidget {
@@ -15,23 +16,22 @@ class EndlessEntryScreen extends ConsumerWidget {
     final shipDef = ref.watch(selectedShipDefinitionProvider);
     final nextSector = endlessProgress.highestSector + 1;
 
-    // Preview the next sector
-    final preview = SectorGenerator.generate(
-      sectorNumber: nextSector,
-      seed: 42,
-    );
-    final biome = BiomeRegistry.getById(preview.biome);
+    // Generate previews for current + upcoming sectors
+    final sectors = <SectorDefinition>[];
+    for (int i = nextSector; i <= nextSector + 7; i++) {
+      sectors.add(SectorGenerator.generate(sectorNumber: i, seed: 42));
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('ENDLESS GALAXY')),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              // Record display
-              Container(
-                padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Record bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Container(
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   color: const Color(0xFF0E1525),
@@ -43,102 +43,67 @@ class EndlessEntryScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _statCol('HIGHEST', '${endlessProgress.highestSector}'),
-                    Container(width: 1, height: 30, color: Colors.white12),
-                    _statCol('BEST SCORE', '${endlessProgress.bestScore}'),
-                    Container(width: 1, height: 30, color: Colors.white12),
+                    Container(width: 1, height: 28, color: Colors.white12),
+                    _statCol('BEST', '${endlessProgress.bestScore}'),
+                    Container(width: 1, height: 28, color: Colors.white12),
                     _statCol('SHIP', shipDef.displayName),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              // Sector preview
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color: biome.bgTint.withValues(alpha: 0.5),
-                  border: Border.all(
-                    color: AppTheme.accentColor.withValues(alpha: 0.3),
+            ),
+            // Sector list
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: sectors.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final sector = sectors[index];
+                  final isActive = index == 0;
+                  final isLocked = index > 0;
+                  final biome = BiomeRegistry.getById(sector.biome);
+
+                  return _SectorCard(
+                    sector: sector,
+                    biome: biome,
+                    isActive: isActive,
+                    isLocked: isLocked,
+                    onTap: isActive
+                        ? () => Navigator.of(context).pop(sector)
+                        : null,
+                  );
+                },
+              ),
+            ),
+            // Bottom buttons
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          Navigator.of(context).pop(sectors.first),
+                      child: Text(
+                        nextSector == 1
+                            ? 'BEGIN ENDLESS RUN'
+                            : 'ENTER SECTOR $nextSector',
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'SECTOR $nextSector',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                        letterSpacing: 2,
-                      ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(null),
+                    child: const Text(
+                      'BACK',
+                      style: TextStyle(color: AppTheme.textSecondary),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      biome.id.displayName,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: AppTheme.textSecondary.withValues(alpha: 0.8),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${preview.missionCount} missions',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.textSecondary.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    if (preview.modifiers.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        children: preview.modifiers.map((m) {
-                          return Chip(
-                            label: Text(
-                              m.displayName,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.white,
-                              ),
-                            ),
-                            backgroundColor: AppTheme.accentColor.withValues(
-                              alpha: 0.3,
-                            ),
-                            padding: EdgeInsets.zero,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const Spacer(),
-              // Start button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(preview),
-                  child: Text(
-                    nextSector == 1
-                        ? 'BEGIN ENDLESS RUN'
-                        : 'CONTINUE TO SECTOR $nextSector',
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(null),
-                child: const Text(
-                  'BACK',
-                  style: TextStyle(color: AppTheme.textSecondary),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -165,6 +130,157 @@ class EndlessEntryScreen extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SectorCard extends StatelessWidget {
+  final SectorDefinition sector;
+  final BiomeDefinition biome;
+  final bool isActive;
+  final bool isLocked;
+  final VoidCallback? onTap;
+
+  const _SectorCard({
+    required this.sector,
+    required this.biome,
+    required this.isActive,
+    required this.isLocked,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = isActive
+        ? AppTheme.primaryColor
+        : isLocked
+            ? Colors.white12
+            : AppTheme.accentColor.withValues(alpha: 0.4);
+
+    final bgColor = isActive
+        ? biome.bgTint.withValues(alpha: 0.6)
+        : const Color(0xFF080C18);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor, width: isActive ? 2 : 1),
+          color: bgColor,
+        ),
+        child: Row(
+          children: [
+            // Sector number circle
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isActive
+                    ? AppTheme.primaryColor.withValues(alpha: 0.15)
+                    : Colors.white10,
+                border: Border.all(
+                  color: isActive
+                      ? AppTheme.primaryColor.withValues(alpha: 0.5)
+                      : Colors.white12,
+                ),
+              ),
+              child: Center(
+                child: isLocked
+                    ? Icon(Icons.lock,
+                        size: 18,
+                        color: Colors.white.withValues(alpha: 0.2))
+                    : Text(
+                        '${sector.sectorNumber}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isActive
+                              ? AppTheme.primaryColor
+                              : Colors.white38,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Sector info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'SECTOR ${sector.sectorNumber}',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                      color: isActive
+                          ? AppTheme.primaryColor
+                          : isLocked
+                              ? Colors.white24
+                              : AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    biome.id.displayName,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isLocked
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : AppTheme.textSecondary.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  if (isActive) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '${sector.missionCount} missions',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color:
+                            AppTheme.textSecondary.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            // Modifiers / locked indicator
+            if (isActive && sector.modifiers.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: sector.modifiers
+                    .take(2)
+                    .map((m) => Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Text(
+                            m.displayName,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppTheme.accentColor
+                                  .withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ))
+                    .toList(),
+              )
+            else if (isLocked)
+              Text(
+                'LOCKED',
+                style: TextStyle(
+                  fontSize: 10,
+                  letterSpacing: 1,
+                  color: Colors.white.withValues(alpha: 0.15),
+                ),
+              )
+            else if (isActive)
+              const Icon(Icons.play_arrow,
+                  color: AppTheme.primaryColor, size: 24),
+          ],
+        ),
+      ),
     );
   }
 }
