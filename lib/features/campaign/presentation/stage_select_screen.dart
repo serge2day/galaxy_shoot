@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/utils/responsive.dart';
 import '../domain/stage_id.dart';
 
 class StageSelectScreen extends ConsumerWidget {
@@ -10,6 +11,7 @@ class StageSelectScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Responsive.init(context);
     final progress = ref.watch(campaignProgressProvider);
 
     return Scaffold(
@@ -97,8 +99,8 @@ class _StageCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: Responsive.w(44),
+              height: Responsive.w(44),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: unlocked

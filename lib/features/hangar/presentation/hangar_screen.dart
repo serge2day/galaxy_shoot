@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/utils/responsive.dart';
 import '../../progression/domain/upgrade_definition.dart';
 import '../domain/ship_definition.dart';
 
@@ -11,6 +12,7 @@ class HangarScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Responsive.init(context);
     final unlockedIds = ref.watch(unlockedShipsProvider);
     final selectedId = ref.watch(selectedShipProvider);
     final wallet = ref.watch(walletProvider);
@@ -79,7 +81,7 @@ class HangarScreen extends ConsumerWidget {
             const SizedBox(height: 8),
             // Compact horizontal ship cards
             SizedBox(
-              height: 200,
+              height: 210,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: ShipCatalog.ships.length,
@@ -126,7 +128,7 @@ class HangarScreen extends ConsumerWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 8,
               crossAxisSpacing: 8,
-              childAspectRatio: 2.4,
+              childAspectRatio: 3.0,
               children: UpgradeConfig.definitions.map((def) {
                 final currentLevel = upgradeState.levelOf(def.type);
                 final isMaxed = currentLevel >= def.maxLevel;
@@ -175,9 +177,8 @@ class _HeroShipDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
     return Container(
-      height: screenHeight * 0.46,
+      height: Responsive.h(240),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
@@ -259,14 +260,16 @@ class _ShipCard extends StatelessWidget {
           ? onSelect
           : (credits >= ship.unlockCost ? onUnlock : null),
       child: Container(
-        width: 130,
+        width: Responsive.w(130),
         padding: const EdgeInsets.all(8),
+        clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: _borderColor, width: isSelected ? 2 : 1),
           color: const Color(0xFF000000),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Ship name
             Text(
@@ -278,16 +281,15 @@ class _ShipCard extends StatelessWidget {
                 letterSpacing: 0.8,
               ),
             ),
-            const SizedBox(height: 4),
-            // Thumbnail - compact
-            SizedBox(
-              height: 55,
+            const SizedBox(height: 2),
+            // Thumbnail
+            Flexible(
               child: Image.asset(
                 'assets/images/ship_${ship.id}_thumb.png',
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) => Icon(
                   isUnlocked ? Icons.rocket_launch : Icons.lock,
-                  size: 30,
+                  size: 28,
                   color: isUnlocked
                       ? _borderColor.withValues(alpha: 0.5)
                       : Colors.white24,
@@ -303,8 +305,7 @@ class _ShipCard extends StatelessWidget {
               'FIRE RATE',
               ((1 / ship.baseStats.fireCooldown) * 10).round().toString(),
             ),
-            const Spacer(),
-            // Action button
+            const SizedBox(height: 4),
             _buildAction(),
           ],
         ),
@@ -416,82 +417,83 @@ class _UpgradeCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         color: const Color(0xFF000000),
         border: Border.all(color: Colors.white10),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Text(def.type.icon, style: const TextStyle(fontSize: 16)),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  def.type.displayName,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    def.type.displayName,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
                 ),
-              ),
-              if (isMaxed)
-                const Text(
-                  'MAX',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.successColor,
-                  ),
-                )
-              else
-                GestureDetector(
-                  onTap: canAfford ? onBuy : null,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                if (isMaxed)
+                  const Text(
+                    'MAX',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.successColor,
                     ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      color: canAfford
-                          ? const Color(0xFF7C4DFF)
-                          : Colors.white10,
-                    ),
-                    child: Text(
-                      '$cost CR',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: canAfford ? Colors.white : Colors.white38,
+                  )
+                else
+                  GestureDetector(
+                    onTap: canAfford ? onBuy : null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        color: canAfford
+                            ? const Color(0xFF7C4DFF)
+                            : Colors.white10,
+                      ),
+                      child: Text(
+                        '$cost CR',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: canAfford ? Colors.white : Colors.white38,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: List.generate(def.maxLevel, (i) {
-              return Container(
-                width: 14,
-                height: 5,
-                margin: const EdgeInsets.only(right: 3),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(3),
-                  color: i < currentLevel
-                      ? const Color(0xFF00E5FF)
-                      : const Color(0xFF00E5FF).withValues(alpha: 0.15),
-                ),
-              );
-            }),
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: List.generate(def.maxLevel, (i) {
+                return Container(
+                  width: 14,
+                  height: 5,
+                  margin: const EdgeInsets.only(right: 3),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(3),
+                    color: i < currentLevel
+                        ? const Color(0xFF00E5FF)
+                        : const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                  ),
+                );
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }

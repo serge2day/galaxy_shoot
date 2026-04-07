@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../app/routes.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/utils/responsive.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Responsive.init(context);
     final bestScore = ref.watch(bestScoreProvider);
     final wallet = ref.watch(walletProvider);
     final shipDef = ref.watch(selectedShipDefinitionProvider);
@@ -18,7 +20,6 @@ class HomeScreen extends ConsumerWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Full-screen background
           Positioned.fill(
             child: Image.asset(
               'assets/images/home_bg.png',
@@ -28,7 +29,6 @@ class HomeScreen extends ConsumerWidget {
                   Container(color: AppTheme.bgDark),
             ),
           ),
-          // Bottom gradient for UI
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -47,21 +47,18 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
-          // UI
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: EdgeInsets.symmetric(horizontal: Responsive.w(24)),
               child: Column(
                 children: [
                   const Spacer(),
-                  // Stats bar
                   _StatsBar(
                     bestScore: bestScore,
                     credits: wallet.credits,
                     shipName: shipDef.displayName,
                   ),
-                  const SizedBox(height: 20),
-                  // Campaign button
+                  SizedBox(height: Responsive.h(16)),
                   _StyledButton(
                     label: 'CAMPAIGN',
                     gradient: const LinearGradient(
@@ -73,8 +70,7 @@ class HomeScreen extends ConsumerWidget {
                       context,
                     ).pushReplacementNamed(AppRoutes.game),
                   ),
-                  const SizedBox(height: 10),
-                  // Endless Galaxy Mode button
+                  SizedBox(height: Responsive.h(8)),
                   _StyledButton(
                     label: 'ENDLESS GALAXY',
                     gradient: const LinearGradient(
@@ -86,8 +82,7 @@ class HomeScreen extends ConsumerWidget {
                       context,
                     ).pushReplacementNamed(AppRoutes.endless),
                   ),
-                  const SizedBox(height: 10),
-                  // HANGAR button
+                  SizedBox(height: Responsive.h(8)),
                   _StyledButton(
                     label: 'HANGAR',
                     gradient: const LinearGradient(
@@ -98,7 +93,7 @@ class HomeScreen extends ConsumerWidget {
                     onTap: () =>
                         Navigator.of(context).pushNamed(AppRoutes.hangar),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: Responsive.h(8)),
                   Row(
                     children: [
                       Expanded(
@@ -106,17 +101,17 @@ class HomeScreen extends ConsumerWidget {
                           onPressed: () => Navigator.of(
                             context,
                           ).pushNamed(AppRoutes.settings),
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.settings,
                             color: AppTheme.primaryColor,
-                            size: 18,
+                            size: Responsive.sp(16),
                           ),
-                          label: const Text(
+                          label: Text(
                             'SETTINGS',
                             style: TextStyle(
                               color: AppTheme.primaryColor,
                               letterSpacing: 1,
-                              fontSize: 13,
+                              fontSize: Responsive.sp(12),
                             ),
                           ),
                         ),
@@ -125,24 +120,24 @@ class HomeScreen extends ConsumerWidget {
                         child: TextButton.icon(
                           onPressed: () =>
                               Navigator.of(context).pushNamed(AppRoutes.about),
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.info_outline,
                             color: AppTheme.textSecondary,
-                            size: 18,
+                            size: Responsive.sp(16),
                           ),
-                          label: const Text(
+                          label: Text(
                             'ABOUT',
                             style: TextStyle(
                               color: AppTheme.textSecondary,
                               letterSpacing: 1,
-                              fontSize: 13,
+                              fontSize: Responsive.sp(12),
                             ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: Responsive.h(6)),
                 ],
               ),
             ),
@@ -167,9 +162,12 @@ class _StatsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.w(14),
+        vertical: Responsive.h(10),
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(Responsive.w(10)),
         border: Border.all(
           color: const Color(0xFF00E5FF).withValues(alpha: 0.5),
         ),
@@ -179,10 +177,10 @@ class _StatsBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _col('BEST', '$bestScore'),
-          Container(width: 1, height: 32, color: Colors.white12),
+          Container(width: 1, height: Responsive.h(28), color: Colors.white12),
           _col('CREDITS', '$credits'),
-          Container(width: 1, height: 32, color: Colors.white12),
-          _col('ACTIVE SHIP', shipName),
+          Container(width: 1, height: Responsive.h(28), color: Colors.white12),
+          _col('SHIP', shipName),
         ],
       ),
     );
@@ -193,19 +191,19 @@ class _StatsBar extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 10,
+          style: TextStyle(
+            fontSize: Responsive.sp(9),
             letterSpacing: 1.2,
-            color: Color(0xFF9E9E9E),
+            color: const Color(0xFF9E9E9E),
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: Responsive.h(3)),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 16,
+          style: TextStyle(
+            fontSize: Responsive.sp(14),
             fontWeight: FontWeight.bold,
-            color: Color(0xFF00E5FF),
+            color: const Color(0xFF00E5FF),
           ),
         ),
       ],
@@ -234,16 +232,15 @@ class _StyledButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: Responsive.h(14)),
         decoration: BoxDecoration(
           gradient: gradient,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Responsive.w(10)),
           border: Border.all(color: borderColor, width: 1.5),
           boxShadow: [
             BoxShadow(
               color: borderColor.withValues(alpha: 0.3),
               blurRadius: 12,
-              spreadRadius: 0,
             ),
           ],
         ),
@@ -251,7 +248,7 @@ class _StyledButton extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: Responsive.sp(17),
               fontWeight: FontWeight.bold,
               letterSpacing: 2,
               color: textColor,

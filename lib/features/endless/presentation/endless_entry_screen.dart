@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/utils/responsive.dart';
 import '../domain/biome_definition.dart';
 import '../domain/sector_definition.dart';
 import '../generation/sector_generator.dart';
@@ -12,6 +13,7 @@ class EndlessEntryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Responsive.init(context);
     final endlessProgress = ref.watch(endlessProgressProvider);
     final shipDef = ref.watch(selectedShipDefinitionProvider);
     final nextSector = endlessProgress.highestSector + 1;
@@ -56,7 +58,8 @@ class EndlessEntryScreen extends ConsumerWidget {
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: sectors.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 10),
                 itemBuilder: (context, index) {
                   final sector = sectors[index];
                   final isActive = index == 0;
@@ -83,8 +86,7 @@ class EndlessEntryScreen extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(sectors.first),
+                      onPressed: () => Navigator.of(context).pop(sectors.first),
                       child: Text(
                         nextSector == 1
                             ? 'BEGIN ENDLESS RUN'
@@ -154,8 +156,8 @@ class _SectorCard extends StatelessWidget {
     final borderColor = isActive
         ? AppTheme.primaryColor
         : isLocked
-            ? Colors.white12
-            : AppTheme.accentColor.withValues(alpha: 0.4);
+        ? Colors.white12
+        : AppTheme.accentColor.withValues(alpha: 0.4);
 
     final bgColor = isActive
         ? biome.bgTint.withValues(alpha: 0.6)
@@ -189,9 +191,11 @@ class _SectorCard extends StatelessWidget {
               ),
               child: Center(
                 child: isLocked
-                    ? Icon(Icons.lock,
+                    ? Icon(
+                        Icons.lock,
                         size: 18,
-                        color: Colors.white.withValues(alpha: 0.2))
+                        color: Colors.white.withValues(alpha: 0.2),
+                      )
                     : Text(
                         '${sector.sectorNumber}',
                         style: TextStyle(
@@ -219,8 +223,8 @@ class _SectorCard extends StatelessWidget {
                       color: isActive
                           ? AppTheme.primaryColor
                           : isLocked
-                              ? Colors.white24
-                              : AppTheme.textPrimary,
+                          ? Colors.white24
+                          : AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -239,8 +243,7 @@ class _SectorCard extends StatelessWidget {
                       '${sector.missionCount} missions',
                       style: TextStyle(
                         fontSize: 11,
-                        color:
-                            AppTheme.textSecondary.withValues(alpha: 0.5),
+                        color: AppTheme.textSecondary.withValues(alpha: 0.5),
                       ),
                     ),
                   ],
@@ -253,17 +256,18 @@ class _SectorCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: sector.modifiers
                     .take(2)
-                    .map((m) => Padding(
-                          padding: const EdgeInsets.only(bottom: 2),
-                          child: Text(
-                            m.displayName,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: AppTheme.accentColor
-                                  .withValues(alpha: 0.7),
-                            ),
+                    .map(
+                      (m) => Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          m.displayName,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppTheme.accentColor.withValues(alpha: 0.7),
                           ),
-                        ))
+                        ),
+                      ),
+                    )
                     .toList(),
               )
             else if (isLocked)
@@ -276,8 +280,11 @@ class _SectorCard extends StatelessWidget {
                 ),
               )
             else if (isActive)
-              const Icon(Icons.play_arrow,
-                  color: AppTheme.primaryColor, size: 24),
+              const Icon(
+                Icons.play_arrow,
+                color: AppTheme.primaryColor,
+                size: 24,
+              ),
           ],
         ),
       ),
