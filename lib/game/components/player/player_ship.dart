@@ -70,8 +70,15 @@ class PlayerShip extends PositionComponent
         position: size * ((1 - stats.hitboxScale) / 2),
       ),
     );
-    game.setHp(_hp);
-    game.setLives(_lives);
+    // If game already has HP/lives set (carry-over from previous mission),
+    // use those values instead of defaults
+    if (game.hp > 0 && game.lives > 0) {
+      _hp = game.hp;
+      _lives = game.lives;
+    } else {
+      game.setHp(_hp);
+      game.setLives(_lives);
+    }
 
     // Try to load ship sprite
     try {

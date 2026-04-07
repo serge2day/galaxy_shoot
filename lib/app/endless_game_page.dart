@@ -41,6 +41,13 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
   int _countdown = 0;
   DifficultyTier _difficulty = DifficultyTier.normal;
 
+  // Carry-over state between missions
+  int _carryHp = 0;
+  int _carryLives = 0;
+  int _carryEvoCores = 0;
+  int _carryBombs = 0;
+  bool _hasCarryState = false;
+
   bool _showMissionTransition = false;
 
   @override
@@ -149,6 +156,20 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
     // Override the stage def
     _game!.stageDef = stageDef;
 
+    // Restore carry-over state from previous mission
+    if (_hasCarryState) {
+      _game!.setHp(_carryHp);
+      _game!.setLives(_carryLives);
+      // Restore evolution: replay core collection to reach saved level
+      for (int i = 0; i < _carryEvoCores; i++) {
+        _game!.evolution.collectCore();
+      }
+      // Restore bomb charges
+      for (int i = 0; i < _carryBombs; i++) {
+        _game!.bomb.addCharge();
+      }
+    }
+
     setState(() {
       _showPause = false;
       _showSectorResults = false;
@@ -175,12 +196,20 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
       return;
     }
 
+    // Save carry-over state from current game
+    if (_game != null) {
+      _carryHp = _game!.hp;
+      _carryLives = _game!.lives;
+      _carryEvoCores = _game!.evolution.coresCollected;
+      _carryBombs = _game!.bomb.charges;
+      _hasCarryState = true;
+    }
+
     // Mission cleared
     _currentMissionIndex++;
     if (_currentMissionIndex >= _currentSector!.missions.length) {
       _onSectorCleared();
     } else {
-      // Show mission transition before starting next
       _showMissionTransitionScreen();
     }
   }
