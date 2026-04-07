@@ -41,6 +41,8 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
   int _countdown = 0;
   DifficultyTier _difficulty = DifficultyTier.normal;
 
+  bool _showMissionTransition = false;
+
   @override
   void initState() {
     super.initState();
@@ -107,8 +109,9 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
         )
         .toList();
 
-    final lastWaveTime = waveTemplates.isEmpty ? 20.0 : waveTemplates.last.time;
-    final bossTime = lastWaveTime + 5.0;
+    final lastWaveTime = waveTemplates.isEmpty ? 30.0 : waveTemplates.last.time;
+    // Give enough buffer after last wave for enemies to clear
+    final bossTime = lastWaveTime + 12.0;
 
     final stageDef = StageDefinition(
       id: _campaignStageForBiome(sector.biome),
@@ -175,12 +178,19 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
     // Mission cleared
     _currentMissionIndex++;
     if (_currentMissionIndex >= _currentSector!.missions.length) {
-      // Sector cleared!
       _onSectorCleared();
     } else {
-      // Next mission
-      _startMission();
+      // Show mission transition before starting next
+      _showMissionTransitionScreen();
     }
+  }
+
+  Future<void> _showMissionTransitionScreen() async {
+    setState(() => _showMissionTransition = true);
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    setState(() => _showMissionTransition = false);
+    _startMission();
   }
 
   void _onSectorCleared() {
@@ -321,6 +331,7 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
                 ),
               ),
             ),
+            if (_showMissionTransition) _buildMissionTransition(),
             if (_showPause) _buildPauseOverlay(),
             if (_countdown > 0) _buildCountdown(),
           ],
@@ -409,6 +420,48 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMissionTransition() {
+    final nextMission = _currentSector?.missions[_currentMissionIndex];
+    return Container(
+      color: const Color(0xDD000000),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'MISSION ${_currentMissionIndex + 1}',
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.primaryColor,
+                letterSpacing: 3,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (nextMission != null)
+              Text(
+                nextMission.type.displayName.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppTheme.textSecondary.withValues(alpha: 0.8),
+                  letterSpacing: 2,
+                ),
+              ),
+            const SizedBox(height: 16),
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

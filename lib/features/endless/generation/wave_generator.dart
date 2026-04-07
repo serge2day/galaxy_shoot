@@ -68,7 +68,7 @@ class WaveGenerator {
         ),
       );
 
-      time += 2.5 + rng.nextDouble() * 2.0;
+      time += 3.5 + rng.nextDouble() * 2.5;
     }
 
     return waves;
