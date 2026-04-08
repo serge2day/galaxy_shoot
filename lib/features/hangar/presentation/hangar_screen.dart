@@ -178,7 +178,7 @@ class _HeroShipDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: Responsive.h(320),
+      height: Responsive.h(260),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
@@ -186,13 +186,14 @@ class _HeroShipDisplay extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Large ship image fills the hero area
-          Center(
+          // Ship image aligned to bottom to eliminate top gap
+          Positioned.fill(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.only(left: 12, right: 12, bottom: 40),
               child: Image.asset(
                 'assets/images/ship_${ship.id}.png',
                 fit: BoxFit.contain,
+                alignment: Alignment.bottomCenter,
                 errorBuilder: (context, error, stackTrace) => Icon(
                   Icons.rocket_launch,
                   size: 120,
