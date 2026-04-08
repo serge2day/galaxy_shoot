@@ -131,7 +131,9 @@ class FlameAudioService implements AudioService {
       final player = _pool[_nextPlayer % _poolSize];
       _nextPlayer++;
       player.stop();
-      player.setVolume(_sfxVolume);
+      // Fire sound at 40% of normal SFX volume
+      final vol = effect.contains('fire') ? _sfxVolume * 0.4 : _sfxVolume;
+      player.setVolume(vol);
       player.setSource(AssetSource(effect));
       player.resume();
     } catch (e) {

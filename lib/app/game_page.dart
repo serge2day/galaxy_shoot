@@ -167,8 +167,11 @@ class _GamePageState extends ConsumerState<GamePage> {
   void _goNextStage() {
     final next = _stageId.next;
     if (next != null) {
-      _stageId = next;
-      _initGame();
+      setState(() {
+        _stageId = next;
+        _summaryData = null;
+        _initGame();
+      });
     }
   }
 
