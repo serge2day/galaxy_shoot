@@ -1,55 +1,58 @@
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flutter/services.dart';
 
 import 'audio_service.dart';
 
-/// Audio service using dedicated pre-created AudioPlayers per sound.
-/// Same approach as Blockfall/Tetris - no FlameAudio.play() leak.
+/// Audio service using native SoundPool for SFX (via MethodChannel)
+/// and FlameAudio.bgm for music. Same architecture as Blockfall/Tetris.
 class FlameAudioService implements AudioService {
+  static const _channel = MethodChannel('com.starvane/sfx');
+
   bool _musicEnabled = true;
   bool _sfxEnabled = true;
-  bool _initialized = false;
+  bool _sfxLoaded = false;
   double _musicVolume = 0.3;
   double _sfxVolume = 0.5;
-  bool _paused = false;
   String _currentBgm = '';
-
-  // Dedicated players per sound - created once, reused forever
-  final Map<String, AudioPlayer> _players = {};
-
-  // Throttle per sound
-  final Map<String, int> _lastPlayedMs = {};
 
   double get musicVolume => _musicVolume;
   double get sfxVolume => _sfxVolume;
 
   @override
   Future<void> initialize() async {
-    try {
-      // Create one dedicated player per SFX
-      final sounds = [
-        'enemy_death.mp3',
-        'player_damage.mp3',
-        'player_death.mp3',
-        'pickup_collect.mp3',
-        'evolution_up.mp3',
-        'boss_enter.mp3',
-        'boss_phase.mp3',
-        'boss_death.mp3',
-        'victory.mp3',
-        'game_over.mp3',
-      ];
+    if (_sfxLoaded) return;
 
-      for (final sound in sounds) {
-        final player = AudioPlayer();
-        await player.setSource(AssetSource(sound));
-        await player.setPlayerMode(PlayerMode.lowLatency);
-        await player.setVolume(_sfxVolume);
-        _players[sound] = player;
+    final sounds = [
+      'player_fire.mp3',
+      'enemy_hit.mp3',
+      'enemy_death.mp3',
+      'player_damage.mp3',
+      'player_death.mp3',
+      'pickup_collect.mp3',
+      'evolution_up.mp3',
+      'boss_enter.mp3',
+      'boss_phase.mp3',
+      'boss_death.mp3',
+      'victory.mp3',
+      'game_over.mp3',
+    ];
+
+    for (final sound in sounds) {
+      try {
+        await _channel.invokeMethod('loadSound', {'name': sound});
+      } catch (e) {
+        // MethodChannel not available - silent fallback
       }
+    }
 
-      _initialized = true;
+    // Wait for SoundPool to finish loading
+    await Future.delayed(const Duration(milliseconds: 500));
+    _sfxLoaded = true;
+
+    try {
+      await _channel.invokeMethod('setVolume', {'volume': _sfxVolume});
     } catch (e) {
-      _initialized = false;
+      // ignore
     }
   }
 
@@ -68,13 +71,14 @@ class FlameAudioService implements AudioService {
 
   void setSfxVolume(double volume) {
     _sfxVolume = volume.clamp(0.0, 1.0);
-    for (final player in _players.values) {
-      player.setVolume(_sfxVolume);
+    try {
+      _channel.invokeMethod('setVolume', {'volume': _sfxVolume});
+    } catch (e) {
+      // ignore
     }
   }
 
   void pauseAll() {
-    _paused = true;
     try {
       FlameAudio.bgm.pause();
     } catch (e) {
@@ -83,7 +87,6 @@ class FlameAudioService implements AudioService {
   }
 
   void resumeAll() {
-    _paused = false;
     try {
       FlameAudio.bgm.resume();
     } catch (e) {
@@ -93,7 +96,7 @@ class FlameAudioService implements AudioService {
 
   @override
   void playBgm(String track) {
-    if (!_musicEnabled || !_initialized) return;
+    if (!_musicEnabled) return;
     if (_currentBgm == track) return;
     try {
       FlameAudio.bgm.stop();
@@ -116,28 +119,10 @@ class FlameAudioService implements AudioService {
 
   @override
   void playSfx(String effect) {
-    if (!_sfxEnabled || !_initialized || _paused) return;
-
-    // Skip fire sound (too frequent even with throttle)
-    if (effect.contains('fire') || effect.contains('enemy_hit')) return;
-
-    // Throttle: 200ms for combat sounds, 500ms for rare sounds
-    final nowMs = DateTime.now().millisecondsSinceEpoch;
-    final lastMs = _lastPlayedMs[effect] ?? 0;
-    final interval = effect.contains('death') ||
-            effect.contains('damage') ||
-            effect.contains('pickup')
-        ? 200
-        : 500;
-    if (nowMs - lastMs < interval) return;
-    _lastPlayedMs[effect] = nowMs;
-
-    final player = _players[effect];
-    if (player == null) return;
-
+    if (!_sfxEnabled || !_sfxLoaded) return;
+    // Fire-and-forget via native SoundPool - no await, no leak
     try {
-      player.seek(Duration.zero);
-      player.resume();
+      _channel.invokeMethod('playSound', {'name': effect});
     } catch (e) {
       // ignore
     }
@@ -149,10 +134,6 @@ class FlameAudioService implements AudioService {
     try {
       FlameAudio.bgm.stop();
       FlameAudio.bgm.dispose();
-      for (final player in _players.values) {
-        player.dispose();
-      }
-      _players.clear();
     } catch (e) {
       // ignore
     }
