@@ -163,12 +163,14 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   void pause() {
     if (_state == GameState.playing) {
       _state = GameState.paused;
+      GameAudio.pauseAll();
       pauseEngine();
     }
   }
 
   void resume() {
     if (_state == GameState.paused) {
+      GameAudio.resumeAll();
       _state = GameState.playing;
       resumeEngine();
     }

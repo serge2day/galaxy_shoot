@@ -178,7 +178,7 @@ class _HeroShipDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: Responsive.h(240),
+      height: Responsive.h(320),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
@@ -430,6 +430,7 @@ class _UpgradeCell extends StatelessWidget {
           children: [
             Row(
               children: [
+                Text(def.type.icon, style: const TextStyle(fontSize: 14)),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(

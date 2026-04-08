@@ -6,11 +6,21 @@ class FlameAudioService implements AudioService {
   bool _musicEnabled = true;
   bool _sfxEnabled = true;
   bool _initialized = false;
+  double _musicVolume = 0.25;
+  double _sfxVolume = 0.35;
+  bool _paused = false;
+
+  // Throttle: prevent SFX spam
+  final Map<String, DateTime> _lastPlayed = {};
+  static const Duration _sfxThrottle = Duration(milliseconds: 150);
+  static const Duration _fireThrottle = Duration(milliseconds: 400);
+
+  double get musicVolume => _musicVolume;
+  double get sfxVolume => _sfxVolume;
 
   @override
   Future<void> initialize() async {
     try {
-      // Pre-cache SFX
       await FlameAudio.audioCache.loadAll([
         'player_fire.mp3',
         'enemy_hit.mp3',
@@ -27,27 +37,50 @@ class FlameAudioService implements AudioService {
       ]);
       _initialized = true;
     } catch (e) {
-      // Audio files missing - graceful fallback
       _initialized = false;
     }
   }
 
   void setMusicEnabled(bool enabled) {
     _musicEnabled = enabled;
-    if (!enabled) {
-      stopBgm();
-    }
+    if (!enabled) stopBgm();
   }
 
   void setSfxEnabled(bool enabled) {
     _sfxEnabled = enabled;
   }
 
+  void setMusicVolume(double volume) {
+    _musicVolume = volume.clamp(0.0, 1.0);
+  }
+
+  void setSfxVolume(double volume) {
+    _sfxVolume = volume.clamp(0.0, 1.0);
+  }
+
+  void pauseAll() {
+    _paused = true;
+    try {
+      FlameAudio.bgm.pause();
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  void resumeAll() {
+    _paused = false;
+    try {
+      FlameAudio.bgm.resume();
+    } catch (e) {
+      // ignore
+    }
+  }
+
   @override
   void playBgm(String track) {
-    if (!_musicEnabled || !_initialized) return;
+    if (!_musicEnabled || !_initialized || _paused) return;
     try {
-      FlameAudio.bgm.play(track);
+      FlameAudio.bgm.play(track, volume: _musicVolume);
     } catch (e) {
       // Graceful fallback
     }
@@ -64,9 +97,19 @@ class FlameAudioService implements AudioService {
 
   @override
   void playSfx(String effect) {
-    if (!_sfxEnabled || !_initialized) return;
+    if (!_sfxEnabled || !_initialized || _paused) return;
+
+    // Throttle rapid SFX - fire sound has longer throttle
+    final now = DateTime.now();
+    final last = _lastPlayed[effect];
+    final throttle = effect.contains('fire') ? _fireThrottle : _sfxThrottle;
+    if (last != null && now.difference(last) < throttle) {
+      return;
+    }
+    _lastPlayed[effect] = now;
+
     try {
-      FlameAudio.play(effect);
+      FlameAudio.play(effect, volume: _sfxVolume);
     } catch (e) {
       // Graceful fallback
     }

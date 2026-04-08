@@ -74,7 +74,7 @@ class PlayerWeapon extends Component with ParentIsA<PositionComponent> {
         break;
     }
 
-    // Muzzle flash + SFX
+    // Muzzle flash + SFX (fire sound throttled to every 400ms)
     parent.parent?.add(MuzzleFlash(position: Vector2(px, py)));
     GameAudio.playerFire();
   }

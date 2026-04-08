@@ -22,11 +22,20 @@ class GameAudio {
   static void bossDeath() => _service.playSfx('boss_death.mp3');
   static void victory() => _service.playSfx('victory.mp3');
   static void gameOver() => _service.playSfx('game_over.mp3');
-  static void menuClick() => _service.playSfx('pickup_collect.mp3');
 
   // BGM
   static void playMenuMusic() => _service.playBgm('bgm_menu.mp3');
   static void playBattleMusic() => _service.playBgm('bgm_battle.mp3');
   static void playBossMusic() => _service.playBgm('bgm_boss.mp3');
   static void stopMusic() => _service.stopBgm();
+
+  // Pause/Resume
+  static void pauseAll() => _service.pauseAll();
+  static void resumeAll() => _service.resumeAll();
+
+  // Volume
+  static void setMusicVolume(double v) => _service.setMusicVolume(v);
+  static void setSfxVolume(double v) => _service.setSfxVolume(v);
+  static double get musicVolume => _service.musicVolume;
+  static double get sfxVolume => _service.sfxVolume;
 }
