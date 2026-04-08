@@ -2,8 +2,8 @@ import 'package:flame_audio/flame_audio.dart';
 
 import 'audio_service.dart';
 
-/// Simple audio service. Uses FlameAudio directly with heavy throttling.
-/// Player fire SFX is disabled to prevent performance issues.
+/// Minimal audio service. Only plays BGM and rare one-shot SFX.
+/// Avoids FlameAudio.play() spam which leaks AudioPlayers.
 class FlameAudioService implements AudioService {
   bool _musicEnabled = true;
   bool _sfxEnabled = true;
@@ -11,10 +11,11 @@ class FlameAudioService implements AudioService {
   double _musicVolume = 0.3;
   double _sfxVolume = 0.5;
   bool _paused = false;
+  String _currentBgm = '';
 
-  // Throttle to prevent SFX spam
-  final Map<String, int> _lastPlayedMs = {};
-  static const int _minIntervalMs = 300;
+  // Single reusable player for one-shot SFX
+  AudioPlayer? _sfxPlayer;
+  int _lastSfxMs = 0;
 
   double get musicVolume => _musicVolume;
   double get sfxVolume => _sfxVolume;
@@ -22,18 +23,15 @@ class FlameAudioService implements AudioService {
   @override
   Future<void> initialize() async {
     try {
+      // Only pre-load the rare important sounds
       await FlameAudio.audioCache.loadAll([
-        'enemy_death.mp3',
-        'player_damage.mp3',
-        'player_death.mp3',
-        'pickup_collect.mp3',
-        'evolution_up.mp3',
-        'boss_enter.mp3',
-        'boss_phase.mp3',
-        'boss_death.mp3',
         'victory.mp3',
         'game_over.mp3',
+        'boss_enter.mp3',
+        'boss_death.mp3',
+        'evolution_up.mp3',
       ]);
+      _sfxPlayer = AudioPlayer();
       _initialized = true;
     } catch (e) {
       _initialized = false;
@@ -77,8 +75,12 @@ class FlameAudioService implements AudioService {
 
   @override
   void playBgm(String track) {
-    if (!_musicEnabled || !_initialized || _paused) return;
+    if (!_musicEnabled || !_initialized) return;
+    // Don't restart the same track
+    if (_currentBgm == track) return;
     try {
+      FlameAudio.bgm.stop();
+      _currentBgm = track;
       FlameAudio.bgm.play(track, volume: _musicVolume);
     } catch (e) {
       // ignore
@@ -87,6 +89,7 @@ class FlameAudioService implements AudioService {
 
   @override
   void stopBgm() {
+    _currentBgm = '';
     try {
       FlameAudio.bgm.stop();
     } catch (e) {
@@ -98,17 +101,27 @@ class FlameAudioService implements AudioService {
   void playSfx(String effect) {
     if (!_sfxEnabled || !_initialized || _paused) return;
 
-    // Skip fire and hit sounds entirely - they spam too much
-    if (effect.contains('fire') || effect.contains('enemy_hit')) return;
+    // Only play rare important sounds - skip frequent combat SFX
+    if (effect.contains('fire') ||
+        effect.contains('enemy_hit') ||
+        effect.contains('enemy_death') ||
+        effect.contains('player_damage') ||
+        effect.contains('player_death') ||
+        effect.contains('pickup_collect') ||
+        effect.contains('boss_phase')) {
+      return;
+    }
 
-    // Throttle: minimum 300ms between same sound
+    // Minimum 1 second between any SFX
     final nowMs = DateTime.now().millisecondsSinceEpoch;
-    final lastMs = _lastPlayedMs[effect] ?? 0;
-    if (nowMs - lastMs < _minIntervalMs) return;
-    _lastPlayedMs[effect] = nowMs;
+    if (nowMs - _lastSfxMs < 1000) return;
+    _lastSfxMs = nowMs;
 
     try {
-      FlameAudio.play(effect, volume: _sfxVolume);
+      _sfxPlayer?.stop();
+      _sfxPlayer?.setVolume(_sfxVolume);
+      _sfxPlayer?.setSource(AssetSource(effect));
+      _sfxPlayer?.resume();
     } catch (e) {
       // ignore
     }
@@ -116,9 +129,11 @@ class FlameAudioService implements AudioService {
 
   @override
   void dispose() {
+    _currentBgm = '';
     try {
       FlameAudio.bgm.stop();
       FlameAudio.bgm.dispose();
+      _sfxPlayer?.dispose();
     } catch (e) {
       // ignore
     }

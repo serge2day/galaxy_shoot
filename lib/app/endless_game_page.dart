@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+
+import '../core/services/game_audio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/endless/domain/biome_definition.dart';
@@ -258,6 +260,7 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
   }
 
   void _goHome() {
+    GameAudio.stopMusic();
     Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
 

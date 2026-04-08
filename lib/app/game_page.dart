@@ -2,6 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/services/game_audio.dart';
 import '../features/campaign/domain/stage_id.dart';
 import '../features/campaign/presentation/stage_select_screen.dart';
 import '../features/hangar/domain/resolved_ship_stats.dart';
@@ -157,6 +158,7 @@ class _GamePageState extends ConsumerState<GamePage> {
   }
 
   void _goHome() {
+    GameAudio.stopMusic();
     Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
 
