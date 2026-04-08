@@ -2,6 +2,8 @@ import 'package:flame_audio/flame_audio.dart';
 
 import 'audio_service.dart';
 
+/// Audio service using a fixed pool of AudioPlayers to prevent memory leaks.
+/// FlameAudio.play() creates new players every call - this reuses them.
 class FlameAudioService implements AudioService {
   bool _musicEnabled = true;
   bool _sfxEnabled = true;
@@ -10,10 +12,15 @@ class FlameAudioService implements AudioService {
   double _sfxVolume = 0.35;
   bool _paused = false;
 
-  // Throttle: prevent SFX spam
+  // Fixed pool of reusable audio players
+  static const int _poolSize = 6;
+  final List<AudioPlayer> _pool = [];
+  int _nextPlayer = 0;
+
+  // Throttle
   final Map<String, DateTime> _lastPlayed = {};
-  static const Duration _sfxThrottle = Duration(milliseconds: 150);
-  static const Duration _fireThrottle = Duration(milliseconds: 400);
+  static const Duration _sfxThrottle = Duration(milliseconds: 200);
+  static const Duration _fireThrottle = Duration(milliseconds: 500);
 
   double get musicVolume => _musicVolume;
   double get sfxVolume => _sfxVolume;
@@ -21,6 +28,14 @@ class FlameAudioService implements AudioService {
   @override
   Future<void> initialize() async {
     try {
+      // Create reusable player pool
+      for (int i = 0; i < _poolSize; i++) {
+        final player = AudioPlayer();
+        await player.setPlayerMode(PlayerMode.lowLatency);
+        _pool.add(player);
+      }
+
+      // Pre-cache audio files
       await FlameAudio.audioCache.loadAll([
         'player_fire.mp3',
         'enemy_hit.mp3',
@@ -62,6 +77,9 @@ class FlameAudioService implements AudioService {
     _paused = true;
     try {
       FlameAudio.bgm.pause();
+      for (final player in _pool) {
+        player.stop();
+      }
     } catch (e) {
       // ignore
     }
@@ -99,7 +117,7 @@ class FlameAudioService implements AudioService {
   void playSfx(String effect) {
     if (!_sfxEnabled || !_initialized || _paused) return;
 
-    // Throttle rapid SFX - fire sound has longer throttle
+    // Throttle
     final now = DateTime.now();
     final last = _lastPlayed[effect];
     final throttle = effect.contains('fire') ? _fireThrottle : _sfxThrottle;
@@ -109,7 +127,13 @@ class FlameAudioService implements AudioService {
     _lastPlayed[effect] = now;
 
     try {
-      FlameAudio.play(effect, volume: _sfxVolume);
+      // Reuse pooled player (round-robin)
+      final player = _pool[_nextPlayer % _poolSize];
+      _nextPlayer++;
+      player.stop();
+      player.setVolume(_sfxVolume);
+      player.setSource(AssetSource(effect));
+      player.resume();
     } catch (e) {
       // Graceful fallback
     }
@@ -119,5 +143,9 @@ class FlameAudioService implements AudioService {
   void dispose() {
     FlameAudio.bgm.stop();
     FlameAudio.bgm.dispose();
+    for (final player in _pool) {
+      player.dispose();
+    }
+    _pool.clear();
   }
 }
