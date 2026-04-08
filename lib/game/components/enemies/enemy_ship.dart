@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
+import '../../../core/services/game_audio.dart';
+
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
@@ -372,10 +374,11 @@ class EnemyShip extends PositionComponent
       other.removeFromParent();
       hp -= other.damage;
 
-      // Hit flash effect
       parent?.add(HitFlash(position: position.clone()));
+      GameAudio.enemyHit();
 
       if (hp <= 0) {
+        GameAudio.enemyDeath();
         game.addScore(scoreReward);
         game.recordEnemyKill();
 

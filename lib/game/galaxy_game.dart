@@ -2,6 +2,7 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
+import '../core/services/game_audio.dart';
 import '../features/campaign/domain/stage_id.dart';
 import '../features/hangar/domain/ship_stats.dart';
 import '../features/progression/domain/difficulty_config.dart';
@@ -128,6 +129,8 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   void triggerGameOver() {
     if (_state != GameState.playing) return;
     _state = GameState.gameOver;
+    GameAudio.gameOver();
+    GameAudio.stopMusic();
     pauseEngine();
     onGameEnd(
       RunResult(
@@ -143,6 +146,8 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   void triggerVictory() {
     if (_state != GameState.playing) return;
     _state = GameState.victory;
+    GameAudio.victory();
+    GameAudio.stopMusic();
     pauseEngine();
     onGameEnd(
       RunResult(

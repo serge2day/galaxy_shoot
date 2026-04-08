@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 
 import '../../../core/config/game_balance.dart';
+import '../../../core/services/game_audio.dart';
 import '../../galaxy_game.dart';
 import '../../systems/evolution_system.dart';
 import '../effects/muzzle_flash.dart';
@@ -73,8 +74,9 @@ class PlayerWeapon extends Component with ParentIsA<PositionComponent> {
         break;
     }
 
-    // Muzzle flash
+    // Muzzle flash + SFX
     parent.parent?.add(MuzzleFlash(position: Vector2(px, py)));
+    GameAudio.playerFire();
   }
 
   void _spawnBullet(double x, double y, int damage) {

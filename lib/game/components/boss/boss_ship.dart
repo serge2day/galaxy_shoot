@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
+import '../../../core/services/game_audio.dart';
+
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
@@ -62,6 +64,7 @@ class BossShip extends PositionComponent
           position.y = _targetY;
           phase = BossPhase.phase1;
           add(_weapon);
+          GameAudio.bossEnter();
         }
         break;
       case BossPhase.phase1:
@@ -105,12 +108,14 @@ class BossShip extends PositionComponent
     final hpRatio = hp / maxHp;
     if (phase == BossPhase.phase1 && hpRatio <= config.phase2HpRatio) {
       phase = BossPhase.phase2;
+      GameAudio.bossPhase();
       final mods = game.difficultyModifiers;
       _weapon.cooldown =
           config.baseCooldown * 0.6 * mods.bossFireRateMultiplier;
       _weapon.firePattern = BossFirePattern.burst;
     } else if (phase == BossPhase.phase2 && hpRatio <= config.phase3HpRatio) {
       phase = BossPhase.phase3;
+      GameAudio.bossPhase();
       final mods = game.difficultyModifiers;
       _weapon.cooldown =
           config.baseCooldown * 0.35 * mods.bossFireRateMultiplier;
@@ -236,6 +241,7 @@ class BossShip extends PositionComponent
         game.addScore(GameBalance.bossScoreReward);
         game.recordEnemyKill();
         game.recordBossDefeat();
+        GameAudio.bossDeath();
 
         // Explosion effect
         parent?.add(

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../app/routes.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/services/game_audio.dart';
 import '../../../core/utils/responsive.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -12,6 +13,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Responsive.init(context);
+    GameAudio.playMenuMusic();
     final bestScore = ref.watch(bestScoreProvider);
     final wallet = ref.watch(walletProvider);
     final shipDef = ref.watch(selectedShipDefinitionProvider);

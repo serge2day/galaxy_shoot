@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 
 import '../../features/hangar/domain/ship_definition.dart';
 import '../../features/settings/domain/fire_mode.dart';
+import '../../core/services/game_audio.dart';
 import '../components/background/space_background.dart';
 import '../components/background/starfield_component.dart';
 import '../components/boss/boss_health_bar.dart';
@@ -76,6 +77,9 @@ class GalaxyWorld extends Component with HasGameReference<GalaxyGame> {
 
     hud = HudComponent();
     await add(hud);
+
+    // Start battle music
+    GameAudio.playBattleMusic();
 
     if (game.fireMode == FireMode.manual) {
       await add(FireButtonComponent(player: player));
