@@ -12,7 +12,7 @@ class MainActivity : FlutterActivity() {
     private var soundPool: SoundPool? = null
     private val soundIds = mutableMapOf<String, Int>()
     private val loadedSounds = mutableSetOf<Int>()
-    private var sfxVolume = 0.5f
+    private var sfxVolume = 0.3f
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -48,7 +48,9 @@ class MainActivity : FlutterActivity() {
                             val name = call.argument<String>("name")!!
                             val id = soundIds[name]
                             if (id != null && loadedSounds.contains(id)) {
-                                soundPool!!.play(id, sfxVolume, sfxVolume, 1, 0, 1.0f)
+                                // Fire sound at 10% volume, others at normal SFX volume
+                                val vol = if (name.contains("fire")) sfxVolume * 0.1f else sfxVolume
+                                soundPool!!.play(id, vol, vol, 1, 0, 1.0f)
                             }
                             result.success(true)
                         }

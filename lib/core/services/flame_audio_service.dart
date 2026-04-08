@@ -11,8 +11,8 @@ class FlameAudioService implements AudioService {
   bool _musicEnabled = true;
   bool _sfxEnabled = true;
   bool _sfxLoaded = false;
-  double _musicVolume = 0.3;
-  double _sfxVolume = 0.5;
+  double _musicVolume = 0.5;
+  double _sfxVolume = 0.3;
   String _currentBgm = '';
 
   double get musicVolume => _musicVolume;
