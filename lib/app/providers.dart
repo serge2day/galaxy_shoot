@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/persistence/key_value_store.dart';
 import '../core/persistence/shared_prefs_store.dart';
+import '../core/services/game_audio.dart';
+import '../core/services/game_haptics.dart';
 import '../features/campaign/data/local_campaign_repository.dart';
 import '../features/campaign/domain/campaign_repository.dart';
 import '../features/campaign/domain/stage_id.dart';
@@ -56,11 +58,19 @@ class GameSettingsNotifier extends StateNotifier<GameSettings> {
 
   Future<void> _load() async {
     state = await _repository.load();
+    _applyAudioSettings(state);
   }
 
   Future<void> update(GameSettings settings) async {
     state = settings;
     await _repository.save(settings);
+    _applyAudioSettings(settings);
+  }
+
+  void _applyAudioSettings(GameSettings settings) {
+    GameAudio.instance.setMusicEnabled(settings.musicEnabled);
+    GameAudio.instance.setSfxEnabled(settings.sfxEnabled);
+    GameHaptics.setEnabled(settings.hapticsEnabled);
   }
 }
 

@@ -11,6 +11,7 @@ import '../../../features/hangar/domain/ship_definition.dart';
 import '../../../features/hangar/domain/ship_stats.dart';
 import '../../galaxy_game.dart';
 import '../../../core/services/game_audio.dart';
+import '../../../core/services/game_haptics.dart';
 import '../enemies/enemy_ship.dart';
 import '../obstacles/asteroid.dart';
 import '../obstacles/satellite_debris.dart';
@@ -363,10 +364,14 @@ class PlayerShip extends PositionComponent
 
   void _applyPickup(PickupType type) {
     GameAudio.pickupCollect();
+    GameHaptics.pickupCollect();
     switch (type) {
       case PickupType.evolutionCore:
         final evolved = game.collectEvolutionCore();
-        if (evolved) GameAudio.evolutionUp();
+        if (evolved) {
+          GameAudio.evolutionUp();
+          GameHaptics.evolutionUp();
+        }
         break;
       case PickupType.shield:
         _shielded = true;
@@ -387,15 +392,18 @@ class PlayerShip extends PositionComponent
     _hp -= amount;
     game.setHp(_hp);
     GameAudio.playerDamage();
+    GameHaptics.playerDamage();
 
     if (_hp <= 0) {
       _lives--;
       game.setLives(_lives);
       if (_lives <= 0) {
         GameAudio.playerDeath();
+        GameHaptics.playerDeath();
         game.triggerGameOver();
       } else {
         GameAudio.playerDeath();
+        GameHaptics.playerDeath();
         _hp = stats.maxHp;
         game.setHp(_hp);
         game.evolution.dropLevel();
