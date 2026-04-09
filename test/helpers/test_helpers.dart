@@ -116,6 +116,9 @@ class FakeCampaignRepository implements CampaignRepository {
   Future<void> setTutorialCompleted() async => _tutorialDone = true;
 
   @override
+  Future<void> resetTutorial() async => _tutorialDone = false;
+
+  @override
   Future<void> resetAll() async {
     _progress = const StageProgress();
     _tutorialDone = false;

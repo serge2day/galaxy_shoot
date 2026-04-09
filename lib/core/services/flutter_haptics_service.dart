@@ -12,18 +12,37 @@ class FlutterHapticsService implements HapticsService {
   @override
   void lightImpact() {
     if (!_enabled) return;
-    HapticFeedback.lightImpact();
+    try {
+      HapticFeedback.lightImpact();
+    } catch (e) {
+      // Fallback
+      try {
+        HapticFeedback.vibrate();
+      } catch (_) {}
+    }
   }
 
   @override
   void mediumImpact() {
     if (!_enabled) return;
-    HapticFeedback.mediumImpact();
+    try {
+      HapticFeedback.mediumImpact();
+    } catch (e) {
+      try {
+        HapticFeedback.vibrate();
+      } catch (_) {}
+    }
   }
 
   @override
   void heavyImpact() {
     if (!_enabled) return;
-    HapticFeedback.heavyImpact();
+    try {
+      HapticFeedback.heavyImpact();
+    } catch (e) {
+      try {
+        HapticFeedback.vibrate();
+      } catch (_) {}
+    }
   }
 }

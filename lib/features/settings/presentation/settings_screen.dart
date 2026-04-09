@@ -82,9 +82,7 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             OutlinedButton(
               onPressed: () async {
-                await ref
-                    .read(campaignRepositoryProvider)
-                    .setTutorialCompleted();
+                await ref.read(campaignRepositoryProvider).resetTutorial();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

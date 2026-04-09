@@ -1,4 +1,4 @@
-package com.example.galaxy_shoot
+package com.twodaycom.starvane
 
 import android.media.AudioAttributes
 import android.media.SoundPool
