@@ -47,6 +47,14 @@ class SettingsScreen extends ConsumerWidget {
                   .read(gameSettingsProvider.notifier)
                   .update(settings.copyWith(musicEnabled: v)),
             ),
+            if (settings.musicEnabled)
+              _VolumeSlider(
+                label: 'Music Volume',
+                value: settings.musicVolume,
+                onChanged: (v) => ref
+                    .read(gameSettingsProvider.notifier)
+                    .update(settings.copyWith(musicVolume: v)),
+              ),
             _ToggleRow(
               label: 'Sound Effects',
               value: settings.sfxEnabled,
@@ -54,6 +62,14 @@ class SettingsScreen extends ConsumerWidget {
                   .read(gameSettingsProvider.notifier)
                   .update(settings.copyWith(sfxEnabled: v)),
             ),
+            if (settings.sfxEnabled)
+              _VolumeSlider(
+                label: 'SFX Volume',
+                value: settings.sfxVolume,
+                onChanged: (v) => ref
+                    .read(gameSettingsProvider.notifier)
+                    .update(settings.copyWith(sfxVolume: v)),
+              ),
             _ToggleRow(
               label: 'Haptics',
               value: settings.hapticsEnabled,
@@ -267,6 +283,70 @@ class _ToggleRow extends StatelessWidget {
               (states) => states.contains(WidgetState.selected)
                   ? AppTheme.primaryColor
                   : AppTheme.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VolumeSlider extends StatelessWidget {
+  final String label;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  const _VolumeSlider({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppTheme.textSecondary.withValues(alpha: 0.7),
+              ),
+            ),
+          ),
+          Expanded(
+            child: SliderTheme(
+              data: SliderThemeData(
+                activeTrackColor: AppTheme.primaryColor,
+                inactiveTrackColor: AppTheme.primaryColor.withValues(
+                  alpha: 0.2,
+                ),
+                thumbColor: AppTheme.primaryColor,
+                overlayColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                trackHeight: 4,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+              ),
+              child: Slider(
+                value: value,
+                min: 0.0,
+                max: 1.0,
+                onChanged: onChanged,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 36,
+            child: Text(
+              '${(value * 100).round()}%',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
             ),
           ),
         ],

@@ -70,6 +70,8 @@ class GameSettingsNotifier extends StateNotifier<GameSettings> {
   void _applyAudioSettings(GameSettings settings) {
     GameAudio.instance.setMusicEnabled(settings.musicEnabled);
     GameAudio.instance.setSfxEnabled(settings.sfxEnabled);
+    GameAudio.setMusicVolume(settings.musicVolume);
+    GameAudio.setSfxVolume(settings.sfxVolume);
     GameHaptics.setEnabled(settings.hapticsEnabled);
   }
 }

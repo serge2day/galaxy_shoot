@@ -48,8 +48,13 @@ class MainActivity : FlutterActivity() {
                             val name = call.argument<String>("name")!!
                             val id = soundIds[name]
                             if (id != null && loadedSounds.contains(id)) {
-                                // Fire sound at 10% volume, others at normal SFX volume
-                                val vol = if (name.contains("fire")) sfxVolume * 0.1f else sfxVolume
+                                // Per-sound volume adjustment
+                                val vol = when {
+                                    name.contains("fire") -> sfxVolume * 0.1f
+                                    name.contains("enemy_death") -> sfxVolume * 0.35f
+                                    name.contains("enemy_hit") -> sfxVolume * 0.25f
+                                    else -> sfxVolume
+                                }
                                 soundPool!!.play(id, vol, vol, 1, 0, 1.0f)
                             }
                             result.success(true)
