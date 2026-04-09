@@ -2,7 +2,9 @@ import 'package:flutter/services.dart';
 
 import 'haptics_service.dart';
 
+/// Haptics via native Android Vibrator through MethodChannel.
 class FlutterHapticsService implements HapticsService {
+  static const _channel = MethodChannel('com.starvane/sfx');
   bool _enabled = true;
 
   void setEnabled(bool enabled) {
@@ -13,12 +15,9 @@ class FlutterHapticsService implements HapticsService {
   void lightImpact() {
     if (!_enabled) return;
     try {
-      HapticFeedback.lightImpact();
+      _channel.invokeMethod('vibrate', {'duration': 20, 'amplitude': 60});
     } catch (e) {
-      // Fallback
-      try {
-        HapticFeedback.vibrate();
-      } catch (_) {}
+      // ignore
     }
   }
 
@@ -26,11 +25,9 @@ class FlutterHapticsService implements HapticsService {
   void mediumImpact() {
     if (!_enabled) return;
     try {
-      HapticFeedback.mediumImpact();
+      _channel.invokeMethod('vibrate', {'duration': 40, 'amplitude': 128});
     } catch (e) {
-      try {
-        HapticFeedback.vibrate();
-      } catch (_) {}
+      // ignore
     }
   }
 
@@ -38,11 +35,9 @@ class FlutterHapticsService implements HapticsService {
   void heavyImpact() {
     if (!_enabled) return;
     try {
-      HapticFeedback.heavyImpact();
+      _channel.invokeMethod('vibrate', {'duration': 80, 'amplitude': 255});
     } catch (e) {
-      try {
-        HapticFeedback.vibrate();
-      } catch (_) {}
+      // ignore
     }
   }
 }
