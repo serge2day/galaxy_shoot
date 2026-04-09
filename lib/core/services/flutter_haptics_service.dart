@@ -2,9 +2,11 @@ import 'package:flutter/services.dart';
 
 import 'haptics_service.dart';
 
-/// Haptics via native Android Vibrator through MethodChannel.
+/// Haptics via native Android Vibrator through dedicated MethodChannel.
+/// Same pattern as Blockfall/Tetris.
 class FlutterHapticsService implements HapticsService {
-  static const _channel = MethodChannel('com.starvane/sfx');
+  static const _channel =
+      MethodChannel('com.twodaycom.starvane/vibration');
   bool _enabled = true;
 
   void setEnabled(bool enabled) {
@@ -15,9 +17,9 @@ class FlutterHapticsService implements HapticsService {
   void lightImpact() {
     if (!_enabled) return;
     try {
-      _channel.invokeMethod('vibrate', {'duration': 20, 'amplitude': 60});
-    } catch (e) {
-      // ignore
+      _channel.invokeMethod('vibrate', {'duration': 15, 'amplitude': 60});
+    } catch (_) {
+      HapticFeedback.lightImpact();
     }
   }
 
@@ -25,9 +27,9 @@ class FlutterHapticsService implements HapticsService {
   void mediumImpact() {
     if (!_enabled) return;
     try {
-      _channel.invokeMethod('vibrate', {'duration': 40, 'amplitude': 128});
-    } catch (e) {
-      // ignore
+      _channel.invokeMethod('vibrate', {'duration': 25, 'amplitude': 120});
+    } catch (_) {
+      HapticFeedback.mediumImpact();
     }
   }
 
@@ -35,9 +37,9 @@ class FlutterHapticsService implements HapticsService {
   void heavyImpact() {
     if (!_enabled) return;
     try {
-      _channel.invokeMethod('vibrate', {'duration': 80, 'amplitude': 255});
-    } catch (e) {
-      // ignore
+      _channel.invokeMethod('vibrate', {'duration': 50, 'amplitude': 200});
+    } catch (_) {
+      HapticFeedback.heavyImpact();
     }
   }
 }

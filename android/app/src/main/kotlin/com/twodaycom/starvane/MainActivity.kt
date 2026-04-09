@@ -2,26 +2,39 @@ package com.twodaycom.starvane
 
 import android.media.AudioAttributes
 import android.media.SoundPool
+import android.content.Context
 import android.content.res.AssetManager
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.content.Context
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.starvane/sfx"
+    private val SFX_CHANNEL = "com.starvane/sfx"
+    private val VIBRATION_CHANNEL = "com.twodaycom.starvane/vibration"
+
     private var soundPool: SoundPool? = null
     private val soundIds = mutableMapOf<String, Int>()
     private val loadedSounds = mutableSetOf<Int>()
     private var sfxVolume = 0.3f
 
+    private fun getVibrator(): Vibrator {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val manager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            manager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
+        // SFX via SoundPool
         val attrs = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -36,7 +49,7 @@ class MainActivity : FlutterActivity() {
             if (status == 0) loadedSounds.add(sampleId)
         }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SFX_CHANNEL)
             .setMethodCallHandler { call, result ->
                 try {
                     when (call.method) {
@@ -67,10 +80,28 @@ class MainActivity : FlutterActivity() {
                             sfxVolume = (call.argument<Double>("volume") ?: 0.5).toFloat()
                             result.success(true)
                         }
+                        else -> result.notImplemented()
+                    }
+                } catch (e: Exception) {
+                    result.success(false)
+                }
+            }
+
+        // Vibration via native Vibrator
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, VIBRATION_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                try {
+                    val vibrator = getVibrator()
+                    when (call.method) {
                         "vibrate" -> {
-                            val duration = (call.argument<Int>("duration") ?: 50).toLong()
-                            val amplitude = call.argument<Int>("amplitude") ?: 128
-                            vibrate(duration, amplitude)
+                            val duration = (call.argument<Int>("duration") ?: 20).toLong()
+                            val amplitude = call.argument<Int>("amplitude") ?: 80
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                vibrator.vibrate(VibrationEffect.createOneShot(duration, amplitude))
+                            } else {
+                                @Suppress("DEPRECATION")
+                                vibrator.vibrate(duration)
+                            }
                             result.success(true)
                         }
                         else -> result.notImplemented()
@@ -79,27 +110,6 @@ class MainActivity : FlutterActivity() {
                     result.success(false)
                 }
             }
-    }
-
-    private fun vibrate(duration: Long, amplitude: Int) {
-        try {
-            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val manager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-                manager.defaultVibrator
-            } else {
-                @Suppress("DEPRECATION")
-                getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createOneShot(duration, amplitude))
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator.vibrate(duration)
-            }
-        } catch (e: Exception) {
-            // ignore
-        }
     }
 
     override fun onDestroy() {
