@@ -375,7 +375,7 @@ class PlayerShip extends PositionComponent
         break;
       case PickupType.shield:
         _shielded = true;
-        _shieldTimer = 3.0;
+        _shieldTimer = 15.0;
         break;
       case PickupType.heal:
         _hp = stats.maxHp;

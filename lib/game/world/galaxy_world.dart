@@ -9,6 +9,7 @@ import '../components/background/space_background.dart';
 import '../components/background/starfield_component.dart';
 import '../components/boss/boss_health_bar.dart';
 import '../components/boss/boss_ship.dart';
+import '../components/enemies/enemy_ship.dart';
 import '../components/enemies/enemy_type.dart';
 import '../components/obstacles/asteroid.dart';
 import '../components/obstacles/satellite_debris.dart';
@@ -31,6 +32,7 @@ class GalaxyWorld extends Component with HasGameReference<GalaxyGame> {
   double _levelTimer = 0;
   int _nextWaveIndex = 0;
   bool _bossSpawned = false;
+  bool _victoryTriggered = false;
   late List<_ResolvedWave> _waves;
   final Random _rng = Random();
 
@@ -104,13 +106,22 @@ class GalaxyWorld extends Component with HasGameReference<GalaxyGame> {
       _nextWaveIndex++;
     }
 
-    if (!_bossSpawned && _levelTimer >= game.stageDef.bossSpawnTime) {
-      if (game.stageDef.hasBoss) {
+    // Boss missions: spawn boss at scheduled time.
+    if (game.stageDef.hasBoss) {
+      if (!_bossSpawned && _levelTimer >= game.stageDef.bossSpawnTime) {
         _spawnBoss();
-      } else {
-        game.triggerVictory();
+        _bossSpawned = true;
       }
-      _bossSpawned = true;
+    } else {
+      // Non-boss missions: end as soon as every wave has spawned and
+      // no enemies remain on screen, instead of waiting for a fixed timer.
+      if (_nextWaveIndex >= _waves.length && !_victoryTriggered) {
+        final enemiesLeft = children.whereType<EnemyShip>().isNotEmpty;
+        if (!enemiesLeft) {
+          _victoryTriggered = true;
+          game.triggerVictory();
+        }
+      }
     }
 
     _spawnObstacles(dt);
