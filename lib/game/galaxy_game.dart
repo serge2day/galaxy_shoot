@@ -28,6 +28,10 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   final void Function(RunResult result) onGameEnd;
   final VoidCallback? onPauseRequested;
 
+  /// Extra multiplier applied to enemy HP on top of difficulty modifiers.
+  /// Used by endless mode to ramp difficulty across sectors and missions.
+  final double extraEnemyHpMultiplier;
+
   GameState _state = GameState.playing;
   GameState get state => _state;
 
@@ -64,6 +68,7 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
     required this.stageId,
     required this.onGameEnd,
     this.onPauseRequested,
+    this.extraEnemyHpMultiplier = 1.0,
   }) : difficultyModifiers = DifficultyConfig.getModifiers(difficulty),
        stageDef = StageRegistry.get(stageId);
 

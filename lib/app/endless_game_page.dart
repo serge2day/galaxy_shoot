@@ -104,7 +104,15 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
       biome: biome,
       difficultyScale: sector.difficultyScale,
       modifiers: modEffect,
+      missionIndex: _currentMissionIndex,
     );
+
+    // Per-run progression: enemies get tougher every sector and every
+    // mission in, since the player keeps weapon upgrades between missions.
+    final extraEnemyHp = sector.difficultyScale *
+        biome.enemyHpScale *
+        modEffect.enemyHpScale *
+        (1.0 + _currentMissionIndex * 0.18);
 
     // Convert to stage definition for GalaxyGame
     final waveTemplates = waves
@@ -154,6 +162,7 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
       stageId: stageDef.id,
       onGameEnd: _onMissionEnd,
       onPauseRequested: _handlePause,
+      extraEnemyHpMultiplier: extraEnemyHp,
     );
 
     // Override the stage def

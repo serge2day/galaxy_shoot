@@ -32,10 +32,16 @@ class WaveGenerator {
     required BiomeDefinition biome,
     required double difficultyScale,
     required ModifierEffect modifiers,
+    int missionIndex = 0,
   }) {
+    // Per-mission progression ramp inside a sector: each mission gets
+    // ~15% more enemies and an extra wave every 2 missions in.
+    final missionRamp = 1.0 + missionIndex * 0.15;
+    final extraWaves = missionIndex ~/ 2;
+
     final waves = <GeneratedWave>[];
-    var remainingBudget = mission.threatBudget * difficultyScale;
-    final waveCount = mission.waveCount;
+    var remainingBudget = mission.threatBudget * difficultyScale * missionRamp;
+    final waveCount = mission.waveCount + extraWaves;
 
     // Pick wave patterns
     final patterns = _selectPatterns(rng, waveCount, mission.type);
@@ -49,9 +55,10 @@ class WaveGenerator {
       // Enemy type: prefer pattern preference but mix from biome pool
       final enemyType = _pickEnemy(rng, pattern, biome);
 
-      // Count scaled by modifiers
-      var count = (pattern.baseCount * modifiers.enemyCountScale).round();
-      count = (count * (0.8 + difficultyScale * 0.2)).round().clamp(2, 25);
+      // Count scaled by modifiers + per-mission ramp
+      var count = (pattern.baseCount * modifiers.enemyCountScale * missionRamp)
+          .round();
+      count = (count * (0.8 + difficultyScale * 0.2)).round().clamp(2, 30);
 
       // Elite chance
       final isElite =
