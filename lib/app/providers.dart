@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,6 +34,39 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 final keyValueStoreProvider = Provider<KeyValueStore>((ref) {
   return SharedPrefsStore(ref.watch(sharedPreferencesProvider));
 });
+
+// --- Locale ---
+
+const _localePrefsKey = 'app_locale_code';
+
+final localeProvider =
+    StateNotifierProvider<LocaleNotifier, Locale?>((ref) {
+  return LocaleNotifier(ref.watch(keyValueStoreProvider));
+});
+
+class LocaleNotifier extends StateNotifier<Locale?> {
+  final KeyValueStore _store;
+
+  LocaleNotifier(this._store) : super(null) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final code = await _store.getString(_localePrefsKey);
+    if (code != null && code.isNotEmpty) {
+      state = Locale(code);
+    }
+  }
+
+  Future<void> setLocale(Locale? locale) async {
+    state = locale;
+    if (locale == null) {
+      await _store.remove(_localePrefsKey);
+    } else {
+      await _store.setString(_localePrefsKey, locale.languageCode);
+    }
+  }
+}
 
 // --- Settings ---
 

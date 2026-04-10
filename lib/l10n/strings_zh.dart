@@ -163,6 +163,9 @@ const Map<String, String> stringsZh = {
   'upgrade_bulletDamage_name': '子弹伤害',
   'upgrade_movementSpeed_name': '移动速度',
 
+  'languageSection': '语言',
+  'languageSystem': '系统默认',
+
   'paused': '已暂停',
   'resume': '继续',
   'restart': '重新开始',

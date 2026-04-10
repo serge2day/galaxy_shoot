@@ -172,6 +172,9 @@ const Map<String, String> stringsRu = {
   'upgrade_bulletDamage_name': 'Урон пули',
   'upgrade_movementSpeed_name': 'Скорость',
 
+  'languageSection': 'Язык',
+  'languageSystem': 'Системный',
+
   'paused': 'ПАУЗА',
   'resume': 'ПРОДОЛЖИТЬ',
   'restart': 'ПЕРЕЗАПУСК',

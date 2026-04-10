@@ -183,6 +183,10 @@ const Map<String, String> stringsEn = {
   'upgrade_bulletDamage_name': 'Bullet Damage',
   'upgrade_movementSpeed_name': 'Movement Speed',
 
+  // Language
+  'languageSection': 'Language',
+  'languageSystem': 'System default',
+
   // Pause / results / missions
   'paused': 'PAUSED',
   'resume': 'RESUME',

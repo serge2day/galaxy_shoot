@@ -164,6 +164,10 @@ class AppLocalizations {
   // ---- Upgrades ----
   String upgradeName(String id) => _t('upgrade_${id}_name');
 
+  // ---- Language ----
+  String get languageSection => _t('languageSection');
+  String get languageSystem => _t('languageSystem');
+
   // ---- Pause / results / missions ----
   String get paused => _t('paused');
   String get resume => _t('resume');

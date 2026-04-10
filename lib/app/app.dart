@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/services/game_audio.dart';
 import '../l10n/app_localizations.dart';
+import 'providers.dart';
 import 'routes.dart';
 import 'theme/app_theme.dart';
 
-class GalaxyShooterApp extends StatefulWidget {
+class GalaxyShooterApp extends ConsumerStatefulWidget {
   const GalaxyShooterApp({super.key});
 
   @override
-  State<GalaxyShooterApp> createState() => _GalaxyShooterAppState();
+  ConsumerState<GalaxyShooterApp> createState() => _GalaxyShooterAppState();
 }
 
-class _GalaxyShooterAppState extends State<GalaxyShooterApp>
+class _GalaxyShooterAppState extends ConsumerState<GalaxyShooterApp>
     with WidgetsBindingObserver {
   @override
   void initState() {
@@ -52,10 +54,13 @@ class _GalaxyShooterAppState extends State<GalaxyShooterApp>
       ),
     );
 
+    final locale = ref.watch(localeProvider);
+
     return MaterialApp(
       title: 'STARVANE',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
+      locale: locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

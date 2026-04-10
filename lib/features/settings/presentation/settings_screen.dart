@@ -6,12 +6,29 @@ import '../../../app/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/fire_mode.dart';
 
+const _languageOptions = <_LanguageOption>[
+  _LanguageOption(null, '', ''), // system default — label filled at build
+  _LanguageOption(Locale('en'), 'English', '🇬🇧'),
+  _LanguageOption(Locale('de'), 'Deutsch', '🇩🇪'),
+  _LanguageOption(Locale('ru'), 'Русский', '🇷🇺'),
+  _LanguageOption(Locale('es'), 'Español', '🇪🇸'),
+  _LanguageOption(Locale('zh'), '中文', '🇨🇳'),
+];
+
+class _LanguageOption {
+  final Locale? locale;
+  final String label;
+  final String flag;
+  const _LanguageOption(this.locale, this.label, this.flag);
+}
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(gameSettingsProvider);
+    final currentLocale = ref.watch(localeProvider);
     final l = AppLocalizations.of(context);
 
     return Scaffold(
@@ -20,6 +37,15 @@ class SettingsScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
+            _sectionLabel(l.languageSection),
+            const SizedBox(height: 8),
+            _LanguageDropdown(
+              current: currentLocale,
+              systemLabel: l.languageSystem,
+              onChanged: (locale) =>
+                  ref.read(localeProvider.notifier).setLocale(locale),
+            ),
+            const SizedBox(height: 28),
             _sectionLabel(l.fireModeSection),
             const SizedBox(height: 8),
             _FireModeOption(
@@ -177,6 +203,73 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LanguageDropdown extends StatelessWidget {
+  final Locale? current;
+  final String systemLabel;
+  final ValueChanged<Locale?> onChanged;
+
+  const _LanguageDropdown({
+    required this.current,
+    required this.systemLabel,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.primaryColor.withValues(alpha: 0.3),
+        ),
+        color: AppTheme.bgCard,
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: true,
+          value: current?.languageCode ?? '',
+          dropdownColor: AppTheme.bgCard,
+          iconEnabledColor: AppTheme.primaryColor,
+          style: const TextStyle(
+            fontSize: 15,
+            color: AppTheme.textPrimary,
+          ),
+          items: _languageOptions.map((opt) {
+            final isSystem = opt.locale == null;
+            final label = isSystem ? systemLabel : opt.label;
+            return DropdownMenuItem<String>(
+              value: opt.locale?.languageCode ?? '',
+              child: Row(
+                children: [
+                  if (!isSystem) ...[
+                    Text(opt.flag, style: const TextStyle(fontSize: 18)),
+                    const SizedBox(width: 10),
+                  ] else ...[
+                    const Icon(
+                      Icons.language,
+                      size: 18,
+                      color: AppTheme.primaryColor,
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                  Text(label),
+                ],
+              ),
+            );
+          }).toList(),
+          onChanged: (code) {
+            final opt = _languageOptions.firstWhere(
+              (o) => (o.locale?.languageCode ?? '') == (code ?? ''),
+            );
+            onChanged(opt.locale);
+          },
+        ),
       ),
     );
   }

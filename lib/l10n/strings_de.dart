@@ -171,6 +171,9 @@ const Map<String, String> stringsDe = {
   'upgrade_bulletDamage_name': 'Kugelschaden',
   'upgrade_movementSpeed_name': 'Bewegungstempo',
 
+  'languageSection': 'Sprache',
+  'languageSystem': 'Systemsprache',
+
   'paused': 'PAUSIERT',
   'resume': 'FORTSETZEN',
   'restart': 'NEUSTART',
