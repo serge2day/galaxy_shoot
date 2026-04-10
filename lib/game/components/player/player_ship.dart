@@ -10,8 +10,12 @@ import '../../../core/config/game_balance.dart';
 import '../../../features/hangar/domain/ship_definition.dart';
 import '../../../features/hangar/domain/ship_stats.dart';
 import '../../galaxy_game.dart';
+import '../../../core/services/game_audio.dart';
+import '../../../core/services/game_haptics.dart';
 import '../enemies/enemy_ship.dart';
 import '../obstacles/asteroid.dart';
+import '../obstacles/satellite_debris.dart';
+import '../obstacles/space_mine.dart';
 import '../pickups/pickup_item.dart';
 import '../pickups/pickup_type.dart';
 import '../projectiles/enemy_bullet.dart';
@@ -48,9 +52,9 @@ class PlayerShip extends PositionComponent
     this.visualStyle = ShipVisualStyle.balanced,
     this.shipId = 'vanguard',
   }) : super(
-          size: Vector2(stats.shipWidth, stats.shipHeight),
-          anchor: Anchor.center,
-        ) {
+         size: Vector2(stats.shipWidth, stats.shipHeight),
+         anchor: Anchor.center,
+       ) {
     _hp = stats.maxHp;
     _lives = stats.startingLives;
     weapon = PlayerWeapon(
@@ -68,15 +72,22 @@ class PlayerShip extends PositionComponent
         position: size * ((1 - stats.hitboxScale) / 2),
       ),
     );
-    game.setHp(_hp);
-    game.setLives(_lives);
+    // If game already has HP/lives set (carry-over from previous mission),
+    // use those values instead of defaults
+    if (game.hp > 0 && game.lives > 0) {
+      _hp = game.hp;
+      _lives = game.lives;
+    } else {
+      game.setHp(_hp);
+      game.setLives(_lives);
+    }
 
     // Try to load ship sprite
     try {
-      final data =
-          await rootBundle.load('assets/images/ship_${shipId}_game.png');
-      final codec =
-          await ui.instantiateImageCodec(data.buffer.asUint8List());
+      final data = await rootBundle.load(
+        'assets/images/ship_${shipId}_game.png',
+      );
+      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
       final frame = await codec.getNextFrame();
       _spriteImage = frame.image;
     } catch (_) {
@@ -191,8 +202,12 @@ class PlayerShip extends PositionComponent
 
   void _renderSprite(Canvas canvas) {
     final img = _spriteImage!;
-    final src =
-        Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble());
+    final src = Rect.fromLTWH(
+      0,
+      0,
+      img.width.toDouble(),
+      img.height.toDouble(),
+    );
     final dst = Rect.fromLTWH(0, 0, size.x, size.y);
     canvas.drawImageRect(img, src, dst, Paint());
 
@@ -337,17 +352,30 @@ class PlayerShip extends PositionComponent
     } else if (other is Asteroid) {
       if (_shielded) return;
       takeDamage(1);
+    } else if (other is SpaceMine) {
+      other.removeFromParent();
+      if (_shielded) return;
+      takeDamage(2);
+    } else if (other is SatelliteDebris) {
+      if (_shielded) return;
+      takeDamage(1);
     }
   }
 
   void _applyPickup(PickupType type) {
+    GameAudio.pickupCollect();
+    GameHaptics.pickupCollect();
     switch (type) {
       case PickupType.evolutionCore:
-        game.collectEvolutionCore();
+        final evolved = game.collectEvolutionCore();
+        if (evolved) {
+          GameAudio.evolutionUp();
+          GameHaptics.evolutionUp();
+        }
         break;
       case PickupType.shield:
         _shielded = true;
-        _shieldTimer = 3.0;
+        _shieldTimer = 15.0;
         break;
       case PickupType.heal:
         _hp = stats.maxHp;
@@ -363,13 +391,19 @@ class PlayerShip extends PositionComponent
     if (_invulnerable) return;
     _hp -= amount;
     game.setHp(_hp);
+    GameAudio.playerDamage();
+    GameHaptics.playerDamage();
 
     if (_hp <= 0) {
       _lives--;
       game.setLives(_lives);
       if (_lives <= 0) {
+        GameAudio.playerDeath();
+        GameHaptics.playerDeath();
         game.triggerGameOver();
       } else {
+        GameAudio.playerDeath();
+        GameHaptics.playerDeath();
         _hp = stats.maxHp;
         game.setHp(_hp);
         game.evolution.dropLevel();

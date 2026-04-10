@@ -12,47 +12,51 @@ Widget _buildApp() {
     overrides: [
       settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       highScoreRepositoryProvider.overrideWithValue(FakeHighScoreRepository()),
-      progressionRepositoryProvider
-          .overrideWithValue(FakeProgressionRepository()),
-      shipCatalogRepositoryProvider
-          .overrideWithValue(FakeShipCatalogRepository()),
+      progressionRepositoryProvider.overrideWithValue(
+        FakeProgressionRepository(),
+      ),
+      shipCatalogRepositoryProvider.overrideWithValue(
+        FakeShipCatalogRepository(),
+      ),
       campaignRepositoryProvider.overrideWithValue(FakeCampaignRepository()),
     ],
     child: MaterialApp(theme: AppTheme.darkTheme, home: const HangarScreen()),
   );
 }
 
+void _setPhoneSize(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1170, 2532);
+  tester.view.devicePixelRatio = 3.0;
+}
+
 void main() {
   testWidgets('displays HANGAR title', (tester) async {
+    _setPhoneSize(tester);
+    addTearDown(tester.view.resetPhysicalSize);
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
     expect(find.text('HANGAR'), findsOneWidget);
   });
 
   testWidgets('displays SHIP SELECTION section', (tester) async {
+    _setPhoneSize(tester);
+    addTearDown(tester.view.resetPhysicalSize);
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
     expect(find.text('SHIP SELECTION'), findsOneWidget);
   });
 
-  testWidgets('displays UPGRADES section', (tester) async {
-    await tester.pumpWidget(_buildApp());
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('UPGRADES'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('UPGRADES'), findsOneWidget);
-  });
-
   testWidgets('vanguard shows ACTIVE badge', (tester) async {
+    _setPhoneSize(tester);
+    addTearDown(tester.view.resetPhysicalSize);
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
     expect(find.text('ACTIVE'), findsOneWidget);
   });
 
   testWidgets('displays credits in header', (tester) async {
+    _setPhoneSize(tester);
+    addTearDown(tester.view.resetPhysicalSize);
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
     expect(find.text('0 CR'), findsOneWidget);

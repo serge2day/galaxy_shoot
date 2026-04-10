@@ -8,7 +8,7 @@ class BossHealthBar extends PositionComponent with HasGameReference {
   final BossShip boss;
 
   BossHealthBar({required this.boss})
-      : super(size: Vector2(200, 18), anchor: Anchor.topCenter);
+    : super(size: Vector2(200, 18), anchor: Anchor.topCenter);
 
   @override
   void onGameResize(Vector2 size) {
@@ -47,8 +47,8 @@ class BossHealthBar extends PositionComponent with HasGameReference {
     final fillColor = hpRatio > 0.5
         ? const Color(0xFFFF1744)
         : hpRatio > 0.25
-            ? const Color(0xFFFF9100)
-            : const Color(0xFFFFD600);
+        ? const Color(0xFFFF9100)
+        : const Color(0xFFFFD600);
     canvas.drawRRect(
       RRect.fromRectAndRadius(fillRect, const Radius.circular(7)),
       Paint()..color = fillColor,
@@ -72,16 +72,18 @@ class BossHealthBar extends PositionComponent with HasGameReference {
   }
 
   Paragraph _buildText(String text, double fontSize, Color color) {
-    final builder = ParagraphBuilder(ParagraphStyle(
-      textAlign: TextAlign.center,
-      fontSize: fontSize,
-    ))
-      ..pushStyle(TextStyle(
-        color: color,
-        fontSize: fontSize,
-        fontWeight: FontWeight.bold,
-      ))
-      ..addText(text);
+    final builder =
+        ParagraphBuilder(
+            ParagraphStyle(textAlign: TextAlign.center, fontSize: fontSize),
+          )
+          ..pushStyle(
+            TextStyle(
+              color: color,
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+          ..addText(text);
     final paragraph = builder.build();
     paragraph.layout(ParagraphConstraints(width: size.x));
     return paragraph;

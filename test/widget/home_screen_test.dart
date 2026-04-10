@@ -31,16 +31,17 @@ Widget _buildApp({int bestScore = 0}) {
         AppRoutes.game: (_) => const Scaffold(body: Text('Game')),
         AppRoutes.hangar: (_) => const Scaffold(body: Text('Hangar')),
         AppRoutes.about: (_) => const Scaffold(body: Text('About')),
+        AppRoutes.endless: (_) => const Scaffold(body: Text('Endless')),
       },
     ),
   );
 }
 
 void main() {
-  testWidgets('displays PLAY button', (tester) async {
+  testWidgets('displays CAMPAIGN button', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
-    expect(find.text('PLAY'), findsOneWidget);
+    expect(find.text('CAMPAIGN'), findsOneWidget);
   });
 
   testWidgets('displays SETTINGS button', (tester) async {

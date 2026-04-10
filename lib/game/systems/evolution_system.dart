@@ -94,15 +94,15 @@ class EvolutionSystem {
 
   /// Returns the damage multiplier for the current level.
   double getDamageMultiplier() {
-    if (_overdriveActive) return 3.0;
-    return 1.0 + (_level - 1) * 0.25; // 1.0, 1.25, 1.5, 1.75, 2.0
+    if (_overdriveActive) return 1.5;
+    return 1.0 + (_level - 1) * 0.1; // 1.0, 1.1, 1.2, 1.3, 1.4
   }
 
   /// Returns the fire rate multiplier (lower = faster firing).
   /// Decreases as level increases. Overdrive fires very fast.
   double get fireRateMultiplier {
-    if (_overdriveActive) return 0.4;
-    return 1.0 - (_level - 1) * 0.08; // 1.0, 0.92, 0.84, 0.76, 0.68
+    if (_overdriveActive) return 0.6;
+    return 1.0 - (_level - 1) * 0.05; // 1.0, 0.95, 0.90, 0.85, 0.80
   }
 
   /// Drops one evolution level as a penalty (e.g. on death).

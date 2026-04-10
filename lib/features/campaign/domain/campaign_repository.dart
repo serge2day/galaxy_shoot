@@ -7,5 +7,6 @@ abstract class CampaignRepository {
   Future<void> updateBestScore(StageId stage, int score);
   Future<bool> isTutorialCompleted();
   Future<void> setTutorialCompleted();
+  Future<void> resetTutorial();
   Future<void> resetAll();
 }

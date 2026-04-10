@@ -4,31 +4,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../app/routes.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/services/game_audio.dart';
+import '../../../core/utils/responsive.dart';
+import '../../../l10n/app_localizations.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Responsive.init(context);
+    GameAudio.playMenuMusic();
     final bestScore = ref.watch(bestScoreProvider);
     final wallet = ref.watch(walletProvider);
     final shipDef = ref.watch(selectedShipDefinitionProvider);
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Full-screen background
           Positioned.fill(
             child: Image.asset(
               'assets/images/home_bg.png',
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
+              fit: BoxFit.fitWidth,
+              alignment: Alignment.topCenter,
               errorBuilder: (context, error, stackTrace) =>
                   Container(color: AppTheme.bgDark),
             ),
           ),
-          // Bottom gradient for UI
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -47,35 +51,58 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
-          // UI
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: EdgeInsets.symmetric(horizontal: Responsive.w(24)),
               child: Column(
                 children: [
                   const Spacer(),
-                  // Stats bar
                   _StatsBar(
                     bestScore: bestScore,
                     credits: wallet.credits,
-                    shipName: shipDef.displayName,
+                    shipName: l.shipName(shipDef.id),
+                    labelBest: l.best,
+                    labelCredits: l.credits,
+                    labelShip: l.ship,
                   ),
-                  const SizedBox(height: 20),
-                  // PLAY button - cyan gradient with frame
+                  SizedBox(height: Responsive.h(16)),
                   _StyledButton(
-                    label: 'PLAY',
+                    label: l.campaign,
                     gradient: const LinearGradient(
                       colors: [Color(0xFF00BCD4), Color(0xFF00E5FF)],
                     ),
                     borderColor: const Color(0xFF00E5FF),
                     textColor: const Color(0xFF001820),
-                    onTap: () => Navigator.of(context)
-                        .pushReplacementNamed(AppRoutes.game),
+                    onTap: () => Navigator.of(
+                      context,
+                    ).pushReplacementNamed(AppRoutes.game),
                   ),
-                  const SizedBox(height: 12),
-                  // HANGAR button - dark with purple border
+                  SizedBox(height: Responsive.h(8)),
                   _StyledButton(
-                    label: 'HANGAR',
+                    label: l.endlessGalaxy,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1A0040), Color(0xFF3A1880)],
+                    ),
+                    borderColor: const Color(0xFFFF6D00),
+                    textColor: const Color(0xFFFF6D00),
+                    onTap: () => Navigator.of(
+                      context,
+                    ).pushReplacementNamed(AppRoutes.endless),
+                  ),
+                  SizedBox(height: Responsive.h(8)),
+                  _StyledButton(
+                    label: l.dailyChallenge,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF002818), Color(0xFF005030)],
+                    ),
+                    borderColor: const Color(0xFF00FF88),
+                    textColor: const Color(0xFF00FF88),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.daily),
+                  ),
+                  SizedBox(height: Responsive.h(8)),
+                  _StyledButton(
+                    label: l.hangar,
                     gradient: const LinearGradient(
                       colors: [Color(0xFF1A1040), Color(0xFF2A1860)],
                     ),
@@ -84,44 +111,51 @@ class HomeScreen extends ConsumerWidget {
                     onTap: () =>
                         Navigator.of(context).pushNamed(AppRoutes.hangar),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: Responsive.h(8)),
                   Row(
                     children: [
                       Expanded(
                         child: TextButton.icon(
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed(AppRoutes.settings),
-                          icon: const Icon(Icons.settings,
-                              color: AppTheme.primaryColor, size: 18),
-                          label: const Text(
-                            'SETTINGS',
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).pushNamed(AppRoutes.settings),
+                          icon: Icon(
+                            Icons.settings,
+                            color: AppTheme.primaryColor,
+                            size: Responsive.sp(16),
+                          ),
+                          label: Text(
+                            l.settings,
                             style: TextStyle(
                               color: AppTheme.primaryColor,
                               letterSpacing: 1,
-                              fontSize: 13,
+                              fontSize: Responsive.sp(12),
                             ),
                           ),
                         ),
                       ),
                       Expanded(
                         child: TextButton.icon(
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed(AppRoutes.about),
-                          icon: const Icon(Icons.info_outline,
-                              color: AppTheme.textSecondary, size: 18),
-                          label: const Text(
-                            'ABOUT',
+                          onPressed: () =>
+                              Navigator.of(context).pushNamed(AppRoutes.about),
+                          icon: Icon(
+                            Icons.info_outline,
+                            color: AppTheme.textSecondary,
+                            size: Responsive.sp(16),
+                          ),
+                          label: Text(
+                            l.about,
                             style: TextStyle(
                               color: AppTheme.textSecondary,
                               letterSpacing: 1,
-                              fontSize: 13,
+                              fontSize: Responsive.sp(12),
                             ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: Responsive.h(6)),
                 ],
               ),
             ),
@@ -136,30 +170,41 @@ class _StatsBar extends StatelessWidget {
   final int bestScore;
   final int credits;
   final String shipName;
+  final String labelBest;
+  final String labelCredits;
+  final String labelShip;
 
   const _StatsBar({
     required this.bestScore,
     required this.credits,
     required this.shipName,
+    required this.labelBest,
+    required this.labelCredits,
+    required this.labelShip,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.w(14),
+        vertical: Responsive.h(10),
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(Responsive.w(10)),
+        border: Border.all(
+          color: const Color(0xFF00E5FF).withValues(alpha: 0.5),
+        ),
         color: const Color(0xA0000000),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _col('BEST', '$bestScore'),
-          Container(width: 1, height: 32, color: Colors.white12),
-          _col('CREDITS', '$credits'),
-          Container(width: 1, height: 32, color: Colors.white12),
-          _col('ACTIVE SHIP', shipName),
+          _col(labelBest, '$bestScore'),
+          Container(width: 1, height: Responsive.h(28), color: Colors.white12),
+          _col(labelCredits, '$credits'),
+          Container(width: 1, height: Responsive.h(28), color: Colors.white12),
+          _col(labelShip, shipName),
         ],
       ),
     );
@@ -170,19 +215,19 @@ class _StatsBar extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 10,
+          style: TextStyle(
+            fontSize: Responsive.sp(9),
             letterSpacing: 1.2,
-            color: Color(0xFF9E9E9E),
+            color: const Color(0xFF9E9E9E),
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: Responsive.h(3)),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 16,
+          style: TextStyle(
+            fontSize: Responsive.sp(14),
             fontWeight: FontWeight.bold,
-            color: Color(0xFF00E5FF),
+            color: const Color(0xFF00E5FF),
           ),
         ),
       ],
@@ -211,16 +256,15 @@ class _StyledButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: Responsive.h(14)),
         decoration: BoxDecoration(
           gradient: gradient,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Responsive.w(10)),
           border: Border.all(color: borderColor, width: 1.5),
           boxShadow: [
             BoxShadow(
               color: borderColor.withValues(alpha: 0.3),
               blurRadius: 12,
-              spreadRadius: 0,
             ),
           ],
         ),
@@ -228,7 +272,7 @@ class _StyledButton extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: Responsive.sp(17),
               fontWeight: FontWeight.bold,
               letterSpacing: 2,
               color: textColor,

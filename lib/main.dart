@@ -7,6 +7,7 @@ import 'app/app.dart';
 import 'app/providers.dart';
 import 'core/persistence/save_migration.dart';
 import 'core/persistence/shared_prefs_store.dart';
+import 'core/services/game_audio.dart';
 import 'features/progression/data/local_progression_repository.dart';
 
 void main() async {
@@ -19,10 +20,12 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
-  // Run save migration
   final store = SharedPrefsStore(prefs);
   final progressionRepo = LocalProgressionRepository(store);
   await SaveMigration(progressionRepo).migrate();
+
+  // Initialize audio
+  await GameAudio.initialize();
 
   runApp(
     ProviderScope(

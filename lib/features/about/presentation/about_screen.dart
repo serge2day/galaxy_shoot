@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../../core/config/app_config.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('ABOUT')),
+      appBar: AppBar(title: Text(l.about)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
@@ -36,36 +39,14 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            _section(
-              'About the Game',
-              'STARVANE is an offline portrait-mode arcade space shooter. '
-                  'Battle through stages, unlock ships, upgrade your fleet, and defeat bosses.',
+            _section(l.aboutGameSection, l.aboutGameBody),
+            _section(l.contactSection, l.contactBody),
+            _section(l.creditsSection, l.creditsBody),
+            _sectionWithLink(
+              l.privacyPolicySection,
+              'https://www.2daycom.com/starvane/',
             ),
-            _section(
-              'Privacy',
-              'This game is fully offline. No personal data is collected, transmitted, or shared. '
-                  'All progress is stored locally on your device. '
-                  'There is no account system, no cloud sync, and no analytics tracking.',
-            ),
-            _section(
-              'Data Storage',
-              'The following data is stored locally on your device:\n'
-                  '- Game settings (fire mode, audio/haptics preferences)\n'
-                  '- Progression (credits, upgrades, ship unlocks)\n'
-                  '- Campaign progress (stage clears, best scores)\n'
-                  '- High score\n\n'
-                  'You can reset all progress from the Settings screen.',
-            ),
-            _section(
-              'Contact',
-              'For support or feedback:\ncontact@example.com',
-            ),
-            _section(
-              'Credits',
-              'Built with Flutter and Flame.\n'
-                  'All visuals are code-drawn.\n'
-                  'No third-party assets used.',
-            ),
+            _section(l.dataStorageSection, l.dataStorageBody),
           ],
         ),
       ),
@@ -94,6 +75,44 @@ class AboutScreen extends StatelessWidget {
               fontSize: 14,
               height: 1.5,
               color: AppTheme.textSecondary.withValues(alpha: 0.8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionWithLink(String title, String url) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () {
+              try {
+                launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+              } catch (e) {
+                // ignore
+              }
+            },
+            child: Text(
+              url,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppTheme.primaryColor,
+                decoration: TextDecoration.underline,
+              ),
             ),
           ),
         ],

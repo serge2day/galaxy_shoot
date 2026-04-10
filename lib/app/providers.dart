@@ -1,12 +1,19 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/persistence/key_value_store.dart';
 import '../core/persistence/shared_prefs_store.dart';
+import '../core/services/game_audio.dart';
+import '../core/services/game_haptics.dart';
 import '../features/campaign/data/local_campaign_repository.dart';
 import '../features/campaign/domain/campaign_repository.dart';
 import '../features/campaign/domain/stage_id.dart';
 import '../features/campaign/domain/stage_progress.dart';
+import '../features/daily/data/local_daily_repository.dart';
+import '../features/daily/domain/daily_result.dart';
+import '../features/endless/data/local_endless_repository.dart';
+import '../features/endless/domain/endless_progress.dart';
 import '../features/hangar/data/local_ship_catalog_repository.dart';
 import '../features/hangar/domain/ship_catalog_repository.dart';
 import '../features/hangar/domain/ship_definition.dart';
@@ -29,6 +36,39 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 final keyValueStoreProvider = Provider<KeyValueStore>((ref) {
   return SharedPrefsStore(ref.watch(sharedPreferencesProvider));
 });
+
+// --- Locale ---
+
+const _localePrefsKey = 'app_locale_code';
+
+final localeProvider =
+    StateNotifierProvider<LocaleNotifier, Locale?>((ref) {
+  return LocaleNotifier(ref.watch(keyValueStoreProvider));
+});
+
+class LocaleNotifier extends StateNotifier<Locale?> {
+  final KeyValueStore _store;
+
+  LocaleNotifier(this._store) : super(null) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final code = await _store.getString(_localePrefsKey);
+    if (code != null && code.isNotEmpty) {
+      state = Locale(code);
+    }
+  }
+
+  Future<void> setLocale(Locale? locale) async {
+    state = locale;
+    if (locale == null) {
+      await _store.remove(_localePrefsKey);
+    } else {
+      await _store.setString(_localePrefsKey, locale.languageCode);
+    }
+  }
+}
 
 // --- Settings ---
 
@@ -54,11 +94,21 @@ class GameSettingsNotifier extends StateNotifier<GameSettings> {
 
   Future<void> _load() async {
     state = await _repository.load();
+    _applyAudioSettings(state);
   }
 
   Future<void> update(GameSettings settings) async {
     state = settings;
     await _repository.save(settings);
+    _applyAudioSettings(settings);
+  }
+
+  void _applyAudioSettings(GameSettings settings) {
+    GameAudio.instance.setMusicEnabled(settings.musicEnabled);
+    GameAudio.instance.setSfxEnabled(settings.sfxEnabled);
+    GameAudio.setMusicVolume(settings.musicVolume);
+    GameAudio.setSfxVolume(settings.sfxVolume);
+    GameHaptics.setEnabled(settings.hapticsEnabled);
   }
 }
 
@@ -237,6 +287,79 @@ class CampaignProgressNotifier extends StateNotifier<StageProgress> {
   }
 }
 
+// --- Endless ---
+
+final endlessRepositoryProvider = Provider<LocalEndlessRepository>((ref) {
+  return LocalEndlessRepository(ref.watch(keyValueStoreProvider));
+});
+
+final endlessProgressProvider =
+    StateNotifierProvider<EndlessProgressNotifier, EndlessProgress>((ref) {
+      return EndlessProgressNotifier(ref.watch(endlessRepositoryProvider));
+    });
+
+class EndlessProgressNotifier extends StateNotifier<EndlessProgress> {
+  final LocalEndlessRepository _repository;
+
+  EndlessProgressNotifier(this._repository) : super(const EndlessProgress()) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    state = await _repository.load();
+  }
+
+  Future<void> unlock() async {
+    state = state.copyWith(unlocked: true);
+    await _repository.save(state);
+  }
+
+  Future<void> recordSectorCleared(int sector, int score, String shipId) async {
+    state = state.withSectorCleared(sector, score, shipId);
+    await _repository.save(state);
+  }
+}
+
+// --- Daily Challenge ---
+
+final dailyRepositoryProvider = Provider<LocalDailyRepository>((ref) {
+  return LocalDailyRepository(ref.watch(keyValueStoreProvider));
+});
+
+final dailyResultProvider =
+    StateNotifierProvider<DailyResultNotifier, DailyResult>((ref) {
+      return DailyResultNotifier(ref.watch(dailyRepositoryProvider));
+    });
+
+class DailyResultNotifier extends StateNotifier<DailyResult> {
+  final LocalDailyRepository _repository;
+
+  DailyResultNotifier(this._repository) : super(const DailyResult()) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    state = await _repository.load();
+  }
+
+  Future<void> recordRun({
+    required DateTime playDate,
+    required int score,
+    required int missionsCleared,
+    required int missionCount,
+    required bool cleared,
+  }) async {
+    state = state.withRun(
+      playDate: playDate,
+      score: score,
+      missionsCleared: missionsCleared,
+      missionCount: missionCount,
+      cleared: cleared,
+    );
+    await _repository.save(state);
+  }
+}
+
 // --- Reset Progress ---
 
 final resetProgressProvider = Provider<Future<void> Function()>((ref) {
@@ -261,7 +384,15 @@ final resetProgressProvider = Provider<Future<void> Function()>((ref) {
     // Reset high score
     await store.setInt('best_score', 0);
 
+    // Reset endless
+    await ref.read(endlessRepositoryProvider).reset();
+
+    // Reset daily
+    await ref.read(dailyRepositoryProvider).reset();
+
     // Reload all providers
+    ref.invalidate(endlessProgressProvider);
+    ref.invalidate(dailyResultProvider);
     ref.invalidate(walletProvider);
     ref.invalidate(upgradeStateProvider);
     ref.invalidate(unlockedShipsProvider);

@@ -2,6 +2,7 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
+import '../core/services/game_audio.dart';
 import '../features/campaign/domain/stage_id.dart';
 import '../features/hangar/domain/ship_stats.dart';
 import '../features/progression/domain/difficulty_config.dart';
@@ -23,9 +24,13 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   final DifficultyModifiers difficultyModifiers;
   final String shipId;
   final StageId stageId;
-  final StageDefinition stageDef;
+  late StageDefinition stageDef;
   final void Function(RunResult result) onGameEnd;
   final VoidCallback? onPauseRequested;
+
+  /// Extra multiplier applied to enemy HP on top of difficulty modifiers.
+  /// Used by endless mode to ramp difficulty across sectors and missions.
+  final double extraEnemyHpMultiplier;
 
   GameState _state = GameState.playing;
   GameState get state => _state;
@@ -63,6 +68,7 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
     required this.stageId,
     required this.onGameEnd,
     this.onPauseRequested,
+    this.extraEnemyHpMultiplier = 1.0,
   }) : difficultyModifiers = DifficultyConfig.getModifiers(difficulty),
        stageDef = StageRegistry.get(stageId);
 
@@ -128,6 +134,8 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   void triggerGameOver() {
     if (_state != GameState.playing) return;
     _state = GameState.gameOver;
+    GameAudio.gameOver();
+    GameAudio.stopMusic();
     pauseEngine();
     onGameEnd(
       RunResult(
@@ -143,6 +151,8 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   void triggerVictory() {
     if (_state != GameState.playing) return;
     _state = GameState.victory;
+    GameAudio.victory();
+    GameAudio.stopMusic();
     pauseEngine();
     onGameEnd(
       RunResult(
@@ -158,12 +168,14 @@ class GalaxyGame extends FlameGame with HasCollisionDetection, DragCallbacks {
   void pause() {
     if (_state == GameState.playing) {
       _state = GameState.paused;
+      GameAudio.pauseAll();
       pauseEngine();
     }
   }
 
   void resume() {
     if (_state == GameState.paused) {
+      GameAudio.resumeAll();
       _state = GameState.playing;
       resumeEngine();
     }

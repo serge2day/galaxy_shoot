@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
+import '../../../core/services/game_audio.dart';
+
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
@@ -63,8 +65,11 @@ class EnemyShip extends PositionComponent
     final cooldownMod = game.difficultyModifiers.enemyFireRateMultiplier;
     add(EnemyWeapon(cooldown: enemyType.baseFireCooldown * cooldownMod));
     add(RectangleHitbox(size: size * 0.8, position: size * 0.1));
-    // Apply difficulty HP multiplier
-    hp = (hp * game.difficultyModifiers.enemyHpMultiplier).ceil();
+    // Apply difficulty + endless progression HP multipliers
+    hp = (hp *
+            game.difficultyModifiers.enemyHpMultiplier *
+            game.extraEnemyHpMultiplier)
+        .ceil();
   }
 
   @override
@@ -372,10 +377,11 @@ class EnemyShip extends PositionComponent
       other.removeFromParent();
       hp -= other.damage;
 
-      // Hit flash effect
       parent?.add(HitFlash(position: position.clone()));
+      GameAudio.enemyHit();
 
       if (hp <= 0) {
+        GameAudio.enemyDeath();
         game.addScore(scoreReward);
         game.recordEnemyKill();
 

@@ -29,8 +29,8 @@ void main() {
     expect(await repo.getSaveVersion(), SaveMigration.currentVersion);
   });
 
-  test('current version is 4', () {
-    expect(SaveMigration.currentVersion, 4);
+  test('current version is 6', () {
+    expect(SaveMigration.currentVersion, 6);
   });
 
   test('migration from v2 to current', () async {

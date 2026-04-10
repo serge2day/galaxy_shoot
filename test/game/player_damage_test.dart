@@ -3,7 +3,7 @@ import 'package:galaxy_shoot/core/config/game_balance.dart';
 
 void main() {
   test('player starts with correct HP', () {
-    expect(GameBalance.playerMaxHp, 5);
+    expect(GameBalance.playerMaxHp, 4);
   });
 
   test('player starts with correct lives', () {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../../features/campaign/domain/stage_id.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../session/domain/run_result.dart';
 import '../domain/difficulty_tier.dart';
 import '../domain/reward_breakdown.dart';
@@ -10,7 +11,7 @@ class RunSummaryData {
   final RunResult result;
   final RewardBreakdown rewards;
   final DifficultyTier difficulty;
-  final String shipName;
+  final String shipId;
   final int previousBestScore;
   final int newBestScore;
   final StageId stageId;
@@ -19,7 +20,7 @@ class RunSummaryData {
     required this.result,
     required this.rewards,
     required this.difficulty,
-    required this.shipName,
+    required this.shipId,
     required this.previousBestScore,
     required this.newBestScore,
     required this.stageId,
@@ -47,6 +48,7 @@ class RunSummaryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isVictory = data.result.outcome == RunOutcome.victory;
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppTheme.bgDark,
@@ -58,7 +60,7 @@ class RunSummaryScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  isVictory ? 'VICTORY' : 'GAME OVER',
+                  isVictory ? l.victory : l.gameOver,
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w900,
@@ -69,15 +71,15 @@ class RunSummaryScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                _buildInfoCard(),
+                _buildInfoCard(context, l),
                 const SizedBox(height: 16),
-                _buildRewardsCard(),
+                _buildRewardsCard(l),
                 const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: onPlayAgain,
-                    child: const Text('PLAY AGAIN'),
+                    child: Text(l.playAgain),
                   ),
                 ),
                 if (onNextStage != null) ...[
@@ -91,7 +93,7 @@ class RunSummaryScreen extends StatelessWidget {
                         side: const BorderSide(color: AppTheme.successColor),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      child: const Text('NEXT STAGE'),
+                      child: Text(l.nextStage),
                     ),
                   ),
                 ],
@@ -105,16 +107,16 @@ class RunSummaryScreen extends StatelessWidget {
                           foregroundColor: AppTheme.accentColor,
                           side: const BorderSide(color: AppTheme.accentColor),
                         ),
-                        child: const Text('HANGAR'),
+                        child: Text(l.hangar),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextButton(
                         onPressed: onHome,
-                        child: const Text(
-                          'HOME',
-                          style: TextStyle(
+                        child: Text(
+                          l.home,
+                          style: const TextStyle(
                             color: AppTheme.textSecondary,
                             letterSpacing: 1,
                           ),
@@ -131,7 +133,13 @@ class RunSummaryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(BuildContext context, AppLocalizations l) {
+    final stageNum = data.stageId.index + 1;
+    final difficultyName = switch (data.difficulty) {
+      DifficultyTier.normal => l.difficultyNormal,
+      DifficultyTier.veteran => l.difficultyVeteran,
+      DifficultyTier.expert => l.difficultyExpert,
+    };
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -142,12 +150,12 @@ class RunSummaryScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _infoRow('Score', '${data.result.score}'),
+          _infoRow(l.scoreLabel, '${data.result.score}'),
           if (data.isNewBest)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                'NEW BEST!',
+                l.newBest,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -157,21 +165,21 @@ class RunSummaryScreen extends StatelessWidget {
               ),
             ),
           const Divider(height: 20, color: Colors.white10),
-          _infoRow('Ship', data.shipName),
+          _infoRow(l.shipLabel, l.shipName(data.shipId)),
           const SizedBox(height: 6),
-          _infoRow('Stage', data.stageId.displayName),
+          _infoRow(l.stageLabel, l.stageName(stageNum)),
           const SizedBox(height: 6),
-          _infoRow('Difficulty', data.difficulty.displayName),
+          _infoRow(l.difficultyLabel, difficultyName),
           const SizedBox(height: 6),
-          _infoRow('Enemies Defeated', '${data.result.enemyKills}'),
+          _infoRow(l.enemiesDefeated, '${data.result.enemyKills}'),
           const SizedBox(height: 6),
-          _infoRow('Peak Evolution', 'Level ${data.result.peakEvolutionLevel}'),
+          _infoRow(l.peakEvolution, l.evolutionLevel(data.result.peakEvolutionLevel)),
         ],
       ),
     );
   }
 
-  Widget _buildRewardsCard() {
+  Widget _buildRewardsCard(AppLocalizations l) {
     final r = data.rewards;
     return Container(
       width: double.infinity,
@@ -183,9 +191,9 @@ class RunSummaryScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text(
-            'CREDITS EARNED',
-            style: TextStyle(
+          Text(
+            l.creditsEarned,
+            style: const TextStyle(
               fontSize: 12,
               letterSpacing: 2,
               color: AppTheme.textSecondary,
@@ -201,14 +209,14 @@ class RunSummaryScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _rewardLine('Enemy kills', r.enemyKillCredits),
+          _rewardLine(l.enemyKills, r.enemyKillCredits),
           if (r.bossDefeatCredits > 0)
-            _rewardLine('Boss defeat', r.bossDefeatCredits),
+            _rewardLine(l.bossDefeat, r.bossDefeatCredits),
           if (r.victoryBonusCredits > 0)
-            _rewardLine('Victory bonus', r.victoryBonusCredits),
+            _rewardLine(l.victoryBonus, r.victoryBonusCredits),
           if (r.difficultyMultiplier != 1.0)
             _rewardLine(
-              'Difficulty bonus',
+              l.difficultyBonus,
               0,
               suffix: 'x${r.difficultyMultiplier.toStringAsFixed(1)}',
             ),

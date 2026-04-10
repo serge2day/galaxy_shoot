@@ -60,6 +60,11 @@ class LocalCampaignRepository implements CampaignRepository {
   }
 
   @override
+  Future<void> resetTutorial() async {
+    await _store.remove(_tutorialKey);
+  }
+
+  @override
   Future<void> resetAll() async {
     for (final stage in StageId.values) {
       await _store.remove('$_clearedPrefix${stage.name}');
