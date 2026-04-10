@@ -13,6 +13,7 @@ import '../features/endless/generation/sector_generator.dart';
 import '../features/endless/generation/wave_generator.dart';
 import '../features/endless/presentation/endless_entry_screen.dart';
 import '../l10n/app_localizations.dart';
+import '../features/hangar/domain/ship_definition.dart';
 import '../features/hangar/domain/resolved_ship_stats.dart';
 import '../features/progression/domain/difficulty_tier.dart';
 import '../features/progression/domain/reward_calculator.dart';
@@ -26,7 +27,18 @@ import 'routes.dart';
 import 'theme/app_theme.dart';
 
 class EndlessGamePage extends ConsumerStatefulWidget {
-  const EndlessGamePage({super.key});
+  const EndlessGamePage({
+    super.key,
+    this.preselectedSector,
+    this.forcedDifficulty,
+    this.forcedShipId,
+    this.isDaily = false,
+  });
+
+  final SectorDefinition? preselectedSector;
+  final DifficultyTier? forcedDifficulty;
+  final String? forcedShipId;
+  final bool isDaily;
 
   @override
   ConsumerState<EndlessGamePage> createState() => _EndlessGamePageState();
@@ -62,22 +74,26 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
   Future<void> _startFlow() async {
     if (!mounted) return;
 
-    // Endless entry screen
-    final sector = await Navigator.of(context).push<SectorDefinition>(
-      MaterialPageRoute(builder: (_) => const EndlessEntryScreen()),
-    );
-    if (sector == null || !mounted) {
-      if (mounted) Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-      return;
+    SectorDefinition? sector = widget.preselectedSector;
+    if (sector == null) {
+      sector = await Navigator.of(context).push<SectorDefinition>(
+        MaterialPageRoute(builder: (_) => const EndlessEntryScreen()),
+      );
+      if (sector == null || !mounted) {
+        if (mounted) Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+        return;
+      }
     }
 
-    // Difficulty select
-    final tier = await Navigator.of(context).push<DifficultyTier>(
-      MaterialPageRoute(builder: (_) => const DifficultySelectScreen()),
-    );
-    if (tier == null || !mounted) {
-      if (mounted) Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-      return;
+    DifficultyTier? tier = widget.forcedDifficulty;
+    if (tier == null) {
+      tier = await Navigator.of(context).push<DifficultyTier>(
+        MaterialPageRoute(builder: (_) => const DifficultySelectScreen()),
+      );
+      if (tier == null || !mounted) {
+        if (mounted) Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+        return;
+      }
     }
 
     _difficulty = tier;
@@ -150,7 +166,9 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
     );
 
     final fireMode = ref.read(gameSettingsProvider).fireMode;
-    final shipDef = ref.read(selectedShipDefinitionProvider);
+    final shipDef = widget.forcedShipId != null
+        ? ShipCatalog.getById(widget.forcedShipId!)
+        : ref.read(selectedShipDefinitionProvider);
     final upgrades = ref.read(upgradeStateProvider);
     final stats = ResolvedShipStats.resolve(ship: shipDef, upgrades: upgrades);
 
@@ -244,14 +262,30 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
     );
     ref.read(walletProvider.notifier).addCredits(rewards.totalCredits);
     ref.read(bestScoreProvider.notifier).submit(_totalScore);
-    ref
-        .read(endlessProgressProvider.notifier)
-        .recordSectorCleared(
-          sector.sectorNumber,
-          _totalScore,
-          ref.read(selectedShipProvider),
-        );
+    if (widget.isDaily) {
+      _recordDailyRun(cleared: true);
+    } else {
+      ref
+          .read(endlessProgressProvider.notifier)
+          .recordSectorCleared(
+            sector.sectorNumber,
+            _totalScore,
+            ref.read(selectedShipProvider),
+          );
+    }
     _showEndlessResults(true);
+  }
+
+  void _recordDailyRun({required bool cleared}) {
+    final sector = _currentSector;
+    if (sector == null) return;
+    ref.read(dailyResultProvider.notifier).recordRun(
+          playDate: DateTime.now(),
+          score: _totalScore,
+          missionsCleared: _currentMissionIndex,
+          missionCount: sector.missionCount,
+          cleared: cleared,
+        );
   }
 
   void _showEndlessResults(bool sectorCleared) {
@@ -265,6 +299,9 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
       );
       ref.read(walletProvider.notifier).addCredits(rewards.totalCredits);
       ref.read(bestScoreProvider.notifier).submit(_totalScore);
+      if (widget.isDaily) {
+        _recordDailyRun(cleared: false);
+      }
     }
     setState(() => _showSectorResults = true);
   }
@@ -414,7 +451,7 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
                 _resultRow(AppLocalizations.of(context).scoreLabel, '$_totalScore'),
                 _resultRow(AppLocalizations.of(context).enemiesDefeated, '$_totalKills'),
                 const SizedBox(height: 28),
-                if (sectorCleared)
+                if (sectorCleared && !widget.isDaily)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(

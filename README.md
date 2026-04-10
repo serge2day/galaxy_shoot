@@ -24,6 +24,13 @@ STARVANE is an arcade vertical shooter where players battle through alien waves,
 - Sector modifiers: Aggressive Swarm, Heavy Armor, Storm Front, Volatile Core, Elite Patrol, Weapon Surge
 - Difficulty scales infinitely with sector depth
 
+### Daily Challenge Mode
+- One shot per day — seeded from the local date, same sector for every attempt on that calendar day
+- Weekday ship rotation (Mon=Vanguard, Tue=Striker, Wed=Guardian, Thu=Ravager, Fri=Phantom, Sat=Titan, Sun=Vanguard); ship is free even if not unlocked, global upgrades still apply
+- Fixed Veteran difficulty
+- Current streak, best streak, and all-time daily best tracked locally
+- Partial score recorded on death with the mission you fell on
+
 ## Ships (6 total)
 
 | Ship | Style | HP | Speed | Damage | Unlock Cost |

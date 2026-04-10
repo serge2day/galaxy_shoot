@@ -91,6 +91,17 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   SizedBox(height: Responsive.h(8)),
                   _StyledButton(
+                    label: l.dailyChallenge,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF002818), Color(0xFF005030)],
+                    ),
+                    borderColor: const Color(0xFF00FF88),
+                    textColor: const Color(0xFF00FF88),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.daily),
+                  ),
+                  SizedBox(height: Responsive.h(8)),
+                  _StyledButton(
                     label: l.hangar,
                     gradient: const LinearGradient(
                       colors: [Color(0xFF1A1040), Color(0xFF2A1860)],

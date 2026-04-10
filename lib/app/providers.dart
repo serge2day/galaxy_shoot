@@ -10,6 +10,8 @@ import '../features/campaign/data/local_campaign_repository.dart';
 import '../features/campaign/domain/campaign_repository.dart';
 import '../features/campaign/domain/stage_id.dart';
 import '../features/campaign/domain/stage_progress.dart';
+import '../features/daily/data/local_daily_repository.dart';
+import '../features/daily/domain/daily_result.dart';
 import '../features/endless/data/local_endless_repository.dart';
 import '../features/endless/domain/endless_progress.dart';
 import '../features/hangar/data/local_ship_catalog_repository.dart';
@@ -318,6 +320,46 @@ class EndlessProgressNotifier extends StateNotifier<EndlessProgress> {
   }
 }
 
+// --- Daily Challenge ---
+
+final dailyRepositoryProvider = Provider<LocalDailyRepository>((ref) {
+  return LocalDailyRepository(ref.watch(keyValueStoreProvider));
+});
+
+final dailyResultProvider =
+    StateNotifierProvider<DailyResultNotifier, DailyResult>((ref) {
+      return DailyResultNotifier(ref.watch(dailyRepositoryProvider));
+    });
+
+class DailyResultNotifier extends StateNotifier<DailyResult> {
+  final LocalDailyRepository _repository;
+
+  DailyResultNotifier(this._repository) : super(const DailyResult()) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    state = await _repository.load();
+  }
+
+  Future<void> recordRun({
+    required DateTime playDate,
+    required int score,
+    required int missionsCleared,
+    required int missionCount,
+    required bool cleared,
+  }) async {
+    state = state.withRun(
+      playDate: playDate,
+      score: score,
+      missionsCleared: missionsCleared,
+      missionCount: missionCount,
+      cleared: cleared,
+    );
+    await _repository.save(state);
+  }
+}
+
 // --- Reset Progress ---
 
 final resetProgressProvider = Provider<Future<void> Function()>((ref) {
@@ -345,8 +387,12 @@ final resetProgressProvider = Provider<Future<void> Function()>((ref) {
     // Reset endless
     await ref.read(endlessRepositoryProvider).reset();
 
+    // Reset daily
+    await ref.read(dailyRepositoryProvider).reset();
+
     // Reload all providers
     ref.invalidate(endlessProgressProvider);
+    ref.invalidate(dailyResultProvider);
     ref.invalidate(walletProvider);
     ref.invalidate(upgradeStateProvider);
     ref.invalidate(unlockedShipsProvider);

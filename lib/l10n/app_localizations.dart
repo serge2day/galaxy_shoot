@@ -131,6 +131,25 @@ class AppLocalizations {
   String get difficultyVeteranDesc => _t('difficultyVeteranDesc');
   String get difficultyExpertDesc => _t('difficultyExpertDesc');
 
+  // ---- Daily ----
+  String get dailyChallenge => _t('dailyChallenge');
+  String get dailyTodaysChallenge => _t('dailyTodaysChallenge');
+  String get dailyStreak => _t('dailyStreak');
+  String get dailyBestStreak => _t('dailyBestStreak');
+  String get dailyAllTimeBest => _t('dailyAllTimeBest');
+  String get dailyStart => _t('dailyStart');
+  String get dailyAlreadyPlayed => _t('dailyAlreadyPlayed');
+  String get dailyShip => _t('dailyShip');
+  String get dailyBiome => _t('dailyBiome');
+  String get dailyDifficulty => _t('dailyDifficulty');
+  String get dailyMissions => _t('dailyMissions');
+  String get dailyModifiers => _t('dailyModifiers');
+  String get dailyTodaysResult => _t('dailyTodaysResult');
+  String dailyClearedWithScore(int n) =>
+      _fmt('dailyClearedWithScore', {'n': n});
+  String dailyFailedOnMission(int m, int n) =>
+      _fmt('dailyFailedOnMission', {'m': m, 'n': n});
+
   // ---- Endless ----
   String get highest => _t('highest');
   String sectorNumber(int n) => _fmt('sectorNumber', {'n': n});
