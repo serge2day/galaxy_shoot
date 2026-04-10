@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 class TutorialScreen extends StatefulWidget {
   const TutorialScreen({super.key});
@@ -12,37 +13,20 @@ class TutorialScreen extends StatefulWidget {
 class _TutorialScreenState extends State<TutorialScreen> {
   int _page = 0;
 
-  static const _pages = [
-    _TutorialPage(
-      icon: Icons.swipe,
-      title: 'DRAG TO MOVE',
-      body:
-          'Touch and drag anywhere to move your ship.\nStay mobile to avoid enemy fire.',
-    ),
-    _TutorialPage(
-      icon: Icons.flash_on,
-      title: 'FIRE & DESTROY',
-      body:
-          'Your ship fires automatically in Auto mode.\nSwitch to Manual in Settings for a fire button.',
-    ),
-    _TutorialPage(
-      icon: Icons.star,
-      title: 'COLLECT PICKUPS',
-      body:
-          'Defeated enemies may drop pickups:\nW = Weapon Boost  S = Shield  H = Heal',
-    ),
-    _TutorialPage(
-      icon: Icons.warning_amber,
-      title: 'DEFEAT THE BOSS',
-      body:
-          'Each stage ends with a boss fight.\nWatch for phase changes and dodge patterns.',
-    ),
+  static const _icons = [
+    Icons.swipe,
+    Icons.flash_on,
+    Icons.star,
+    Icons.warning_amber,
   ];
 
   @override
   Widget build(BuildContext context) {
-    final page = _pages[_page];
-    final isLast = _page == _pages.length - 1;
+    final l = AppLocalizations.of(context);
+    final titles = [l.tut1Title, l.tut2Title, l.tut3Title, l.tut4Title];
+    final bodies = [l.tut1Body, l.tut2Body, l.tut3Body, l.tut4Body];
+    final pageCount = titles.length;
+    final isLast = _page == pageCount - 1;
 
     return Scaffold(
       backgroundColor: AppTheme.bgDark,
@@ -52,10 +36,11 @@ class _TutorialScreenState extends State<TutorialScreen> {
           child: Column(
             children: [
               const Spacer(flex: 2),
-              Icon(page.icon, size: 64, color: AppTheme.primaryColor),
+              Icon(_icons[_page], size: 64, color: AppTheme.primaryColor),
               const SizedBox(height: 24),
               Text(
-                page.title,
+                titles[_page],
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -65,7 +50,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                page.body,
+                bodies[_page],
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -74,11 +59,10 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 ),
               ),
               const Spacer(flex: 2),
-              // Page dots
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
-                  _pages.length,
+                  pageCount,
                   (i) => Container(
                     width: i == _page ? 20 : 8,
                     height: 8,
@@ -103,14 +87,14 @@ class _TutorialScreenState extends State<TutorialScreen> {
                       setState(() => _page++);
                     }
                   },
-                  child: Text(isLast ? 'START PLAYING' : 'NEXT'),
+                  child: Text(isLast ? l.startPlaying : l.next),
                 ),
               ),
               if (!isLast)
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(true),
                   child: Text(
-                    'SKIP',
+                    l.skip,
                     style: TextStyle(
                       color: AppTheme.textSecondary.withValues(alpha: 0.5),
                       letterSpacing: 1,
@@ -123,16 +107,4 @@ class _TutorialScreenState extends State<TutorialScreen> {
       ),
     );
   }
-}
-
-class _TutorialPage {
-  final IconData icon;
-  final String title;
-  final String body;
-
-  const _TutorialPage({
-    required this.icon,
-    required this.title,
-    required this.body,
-  });
 }

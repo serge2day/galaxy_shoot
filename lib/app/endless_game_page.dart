@@ -12,6 +12,7 @@ import '../features/endless/domain/sector_definition.dart';
 import '../features/endless/generation/sector_generator.dart';
 import '../features/endless/generation/wave_generator.dart';
 import '../features/endless/presentation/endless_entry_screen.dart';
+import '../l10n/app_localizations.dart';
 import '../features/hangar/domain/resolved_ship_stats.dart';
 import '../features/progression/domain/difficulty_tier.dart';
 import '../features/progression/domain/reward_calculator.dart';
@@ -385,7 +386,7 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  sectorCleared ? 'SECTOR CLEARED!' : 'RUN OVER',
+                  sectorCleared ? AppLocalizations.of(context).sectorCleared : AppLocalizations.of(context).runOver,
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
@@ -396,20 +397,20 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                _resultRow('Sector', '${_currentSector?.sectorNumber ?? 0}'),
+                _resultRow(AppLocalizations.of(context).sectorLabel, '${_currentSector?.sectorNumber ?? 0}'),
                 _resultRow(
-                  'Missions Cleared',
+                  AppLocalizations.of(context).missionsCleared,
                   '$_currentMissionIndex / ${_currentSector?.missionCount ?? 0}',
                 ),
-                _resultRow('Score', '$_totalScore'),
-                _resultRow('Enemies Defeated', '$_totalKills'),
+                _resultRow(AppLocalizations.of(context).scoreLabel, '$_totalScore'),
+                _resultRow(AppLocalizations.of(context).enemiesDefeated, '$_totalKills'),
                 const SizedBox(height: 28),
                 if (sectorCleared)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _continueNextSector,
-                      child: const Text('NEXT SECTOR'),
+                      child: Text(AppLocalizations.of(context).nextSectorBtn),
                     ),
                   ),
                 const SizedBox(height: 10),
@@ -421,7 +422,7 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
                       foregroundColor: AppTheme.textSecondary,
                       side: const BorderSide(color: AppTheme.textSecondary),
                     ),
-                    child: const Text('HOME'),
+                    child: Text(AppLocalizations.of(context).home),
                   ),
                 ),
               ],
@@ -465,7 +466,7 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'MISSION ${_currentMissionIndex + 1}',
+              AppLocalizations.of(context).missionNumber(_currentMissionIndex + 1),
               style: const TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w900,
@@ -476,7 +477,7 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
             const SizedBox(height: 8),
             if (nextMission != null)
               Text(
-                nextMission.type.displayName.toUpperCase(),
+                AppLocalizations.of(context).missionType(nextMission.type.name).toUpperCase(),
                 style: TextStyle(
                   fontSize: 16,
                   color: AppTheme.textSecondary.withValues(alpha: 0.8),
@@ -516,9 +517,9 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'PAUSED',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).paused,
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.primaryColor,
@@ -530,15 +531,15 @@ class _EndlessGamePageState extends ConsumerState<EndlessGamePage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _startResumeCountdown,
-                    child: const Text('RESUME'),
+                    child: Text(AppLocalizations.of(context).resume),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: _goHome,
-                  child: const Text(
-                    'HOME',
-                    style: TextStyle(color: AppTheme.dangerColor),
+                  child: Text(
+                    AppLocalizations.of(context).home,
+                    style: const TextStyle(color: AppTheme.dangerColor),
                   ),
                 ),
               ],

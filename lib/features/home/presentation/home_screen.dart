@@ -6,6 +6,7 @@ import '../../../app/routes.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/services/game_audio.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../l10n/app_localizations.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -17,6 +18,7 @@ class HomeScreen extends ConsumerWidget {
     final bestScore = ref.watch(bestScoreProvider);
     final wallet = ref.watch(walletProvider);
     final shipDef = ref.watch(selectedShipDefinitionProvider);
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
       body: Stack(
@@ -58,11 +60,14 @@ class HomeScreen extends ConsumerWidget {
                   _StatsBar(
                     bestScore: bestScore,
                     credits: wallet.credits,
-                    shipName: shipDef.displayName,
+                    shipName: l.shipName(shipDef.id),
+                    labelBest: l.best,
+                    labelCredits: l.credits,
+                    labelShip: l.ship,
                   ),
                   SizedBox(height: Responsive.h(16)),
                   _StyledButton(
-                    label: 'CAMPAIGN',
+                    label: l.campaign,
                     gradient: const LinearGradient(
                       colors: [Color(0xFF00BCD4), Color(0xFF00E5FF)],
                     ),
@@ -74,7 +79,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   SizedBox(height: Responsive.h(8)),
                   _StyledButton(
-                    label: 'ENDLESS GALAXY',
+                    label: l.endlessGalaxy,
                     gradient: const LinearGradient(
                       colors: [Color(0xFF1A0040), Color(0xFF3A1880)],
                     ),
@@ -86,7 +91,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   SizedBox(height: Responsive.h(8)),
                   _StyledButton(
-                    label: 'HANGAR',
+                    label: l.hangar,
                     gradient: const LinearGradient(
                       colors: [Color(0xFF1A1040), Color(0xFF2A1860)],
                     ),
@@ -109,7 +114,7 @@ class HomeScreen extends ConsumerWidget {
                             size: Responsive.sp(16),
                           ),
                           label: Text(
-                            'SETTINGS',
+                            l.settings,
                             style: TextStyle(
                               color: AppTheme.primaryColor,
                               letterSpacing: 1,
@@ -128,7 +133,7 @@ class HomeScreen extends ConsumerWidget {
                             size: Responsive.sp(16),
                           ),
                           label: Text(
-                            'ABOUT',
+                            l.about,
                             style: TextStyle(
                               color: AppTheme.textSecondary,
                               letterSpacing: 1,
@@ -154,11 +159,17 @@ class _StatsBar extends StatelessWidget {
   final int bestScore;
   final int credits;
   final String shipName;
+  final String labelBest;
+  final String labelCredits;
+  final String labelShip;
 
   const _StatsBar({
     required this.bestScore,
     required this.credits,
     required this.shipName,
+    required this.labelBest,
+    required this.labelCredits,
+    required this.labelShip,
   });
 
   @override
@@ -178,11 +189,11 @@ class _StatsBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _col('BEST', '$bestScore'),
+          _col(labelBest, '$bestScore'),
           Container(width: 1, height: Responsive.h(28), color: Colors.white12),
-          _col('CREDITS', '$credits'),
+          _col(labelCredits, '$credits'),
           Container(width: 1, height: Responsive.h(28), color: Colors.white12),
-          _col('SHIP', shipName),
+          _col(labelShip, shipName),
         ],
       ),
     );

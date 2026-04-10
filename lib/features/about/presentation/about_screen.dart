@@ -3,14 +3,16 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../../core/config/app_config.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('ABOUT')),
+      appBar: AppBar(title: Text(l.about)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
@@ -37,34 +39,14 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            _section(
-              'About the Game',
-              'Starvane is an offline portrait-mode arcade space shooter. '
-                  'Battle through stages, unlock ships, upgrade your fleet, and defeat bosses.',
-            ),
-            _section(
-              'Contact',
-              '2Day Communications GmbH\ncontact@2daycom.com',
-            ),
-            _section(
-              'Credits',
-              'All visuals and sound made by 2Day Communications GmbH.',
-            ),
+            _section(l.aboutGameSection, l.aboutGameBody),
+            _section(l.contactSection, l.contactBody),
+            _section(l.creditsSection, l.creditsBody),
             _sectionWithLink(
-              'Privacy Policy',
+              l.privacyPolicySection,
               'https://www.2daycom.com/starvane/',
             ),
-            _section(
-              'Data Storage',
-              'The following data is stored locally on your device:\n'
-                  '- Game settings (fire mode, audio/haptics preferences)\n'
-                  '- Progression (credits, upgrades, ship unlocks)\n'
-                  '- Campaign progress (stage clears, best scores)\n'
-                  '- Endless mode records\n'
-                  '- High score\n\n'
-                  'You can reset all progress from the Settings screen.\n'
-                  'No data is collected, transmitted, or shared.',
-            ),
+            _section(l.dataStorageSection, l.dataStorageBody),
           ],
         ),
       ),

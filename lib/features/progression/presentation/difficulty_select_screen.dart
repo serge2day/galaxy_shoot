@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/difficulty_config.dart';
 import '../domain/difficulty_tier.dart';
 
@@ -9,8 +10,9 @@ class DifficultySelectScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('SELECT DIFFICULTY')),
+      appBar: AppBar(title: Text(l.selectDifficulty)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -18,10 +20,10 @@ class DifficultySelectScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 16),
-              const Text(
-                'Choose your challenge.',
+              Text(
+                l.chooseChallenge,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary),
               ),
               const SizedBox(height: 32),
               ...DifficultyTier.values.map(
@@ -35,7 +37,18 @@ class DifficultySelectScreen extends StatelessWidget {
   }
 
   Widget _buildTierCard(BuildContext context, DifficultyTier tier) {
+    final l = AppLocalizations.of(context);
     final mods = DifficultyConfig.getModifiers(tier);
+    final name = switch (tier) {
+      DifficultyTier.normal => l.difficultyNormal,
+      DifficultyTier.veteran => l.difficultyVeteran,
+      DifficultyTier.expert => l.difficultyExpert,
+    };
+    final desc = switch (tier) {
+      DifficultyTier.normal => l.difficultyNormalDesc,
+      DifficultyTier.veteran => l.difficultyVeteranDesc,
+      DifficultyTier.expert => l.difficultyExpertDesc,
+    };
     Color accent;
     switch (tier) {
       case DifficultyTier.normal:
@@ -68,7 +81,7 @@ class DifficultySelectScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      tier.displayName.toUpperCase(),
+                      name.toUpperCase(),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -78,7 +91,7 @@ class DifficultySelectScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      tier.description,
+                      desc,
                       style: TextStyle(
                         fontSize: 13,
                         color: AppTheme.textSecondary.withValues(alpha: 0.7),

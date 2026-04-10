@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../galaxy_game.dart';
 
 class HudComponent extends PositionComponent with HasGameReference<GalaxyGame> {
@@ -16,43 +17,39 @@ class HudComponent extends PositionComponent with HasGameReference<GalaxyGame> {
   void render(Canvas canvas) {
     final screenW = size.x;
     final topY = 48.0;
+    final l = GameStrings.t;
 
-    // Score
     _drawText(
       canvas,
-      'SCORE: ${game.score}',
+      l.hudScore(game.score),
       16,
       topY,
       16,
       const Color(0xFFE0E0E0),
     );
 
-    // HP bar
     _drawHpBar(canvas, screenW - 120, topY, 100, 8);
 
-    // Lives
     _drawText(
       canvas,
-      'LIVES: ${game.lives}',
+      l.hudLives(game.lives),
       screenW - 120,
       topY + 14,
       11,
       const Color(0xFF69F0AE),
     );
 
-    // Evolution level
     final evoLevel = game.evolution.level;
     final evoColor = game.evolution.isOverdriveActive
         ? const Color(0xFFFF6D00)
         : const Color(0xFFFFD600);
-    _drawText(canvas, 'EVO: $evoLevel', 16, topY + 22, 12, evoColor);
+    _drawText(canvas, l.hudEvo(evoLevel), 16, topY + 22, 12, evoColor);
 
-    // Overdrive bar (show when at max evo)
     if (evoLevel >= 5) {
       if (game.evolution.isOverdriveActive) {
         _drawText(
           canvas,
-          'OVERDRIVE!',
+          l.hudOverdrive,
           16,
           topY + 38,
           11,
@@ -72,11 +69,10 @@ class HudComponent extends PositionComponent with HasGameReference<GalaxyGame> {
       }
     }
 
-    // Bomb count
     if (game.bomb.charges > 0) {
       _drawText(
         canvas,
-        'BOMB: ${game.bomb.charges}',
+        l.hudBomb(game.bomb.charges),
         16,
         topY + 52,
         11,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/biome_definition.dart';
 import '../domain/sector_definition.dart';
 import '../generation/sector_generator.dart';
@@ -17,6 +18,7 @@ class EndlessEntryScreen extends ConsumerWidget {
     final endlessProgress = ref.watch(endlessProgressProvider);
     final shipDef = ref.watch(selectedShipDefinitionProvider);
     final nextSector = endlessProgress.highestSector + 1;
+    final l = AppLocalizations.of(context);
 
     // Generate previews for current + upcoming sectors
     final sectors = <SectorDefinition>[];
@@ -25,7 +27,7 @@ class EndlessEntryScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('ENDLESS GALAXY')),
+      appBar: AppBar(title: Text(l.endlessGalaxy)),
       body: SafeArea(
         child: Column(
           children: [
@@ -44,11 +46,11 @@ class EndlessEntryScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _statCol('HIGHEST', '${endlessProgress.highestSector}'),
+                    _statCol(l.highest, '${endlessProgress.highestSector}'),
                     Container(width: 1, height: 28, color: Colors.white12),
-                    _statCol('BEST', '${endlessProgress.bestScore}'),
+                    _statCol(l.best, '${endlessProgress.bestScore}'),
                     Container(width: 1, height: 28, color: Colors.white12),
-                    _statCol('SHIP', shipDef.displayName),
+                    _statCol(l.ship, l.shipName(shipDef.id)),
                   ],
                 ),
               ),
@@ -71,6 +73,7 @@ class EndlessEntryScreen extends ConsumerWidget {
                     biome: biome,
                     isActive: isActive,
                     isLocked: isLocked,
+                    l: l,
                     onTap: isActive
                         ? () => Navigator.of(context).pop(sector)
                         : null,
@@ -89,17 +92,17 @@ class EndlessEntryScreen extends ConsumerWidget {
                       onPressed: () => Navigator.of(context).pop(sectors.first),
                       child: Text(
                         nextSector == 1
-                            ? 'BEGIN ENDLESS RUN'
-                            : 'ENTER SECTOR $nextSector',
+                            ? l.beginEndlessRun
+                            : l.enterSector(nextSector),
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(null),
-                    child: const Text(
-                      'BACK',
-                      style: TextStyle(color: AppTheme.textSecondary),
+                    child: Text(
+                      l.back,
+                      style: const TextStyle(color: AppTheme.textSecondary),
                     ),
                   ),
                 ],
@@ -141,6 +144,7 @@ class _SectorCard extends StatelessWidget {
   final BiomeDefinition biome;
   final bool isActive;
   final bool isLocked;
+  final AppLocalizations l;
   final VoidCallback? onTap;
 
   const _SectorCard({
@@ -148,6 +152,7 @@ class _SectorCard extends StatelessWidget {
     required this.biome,
     required this.isActive,
     required this.isLocked,
+    required this.l,
     this.onTap,
   });
 
@@ -215,7 +220,7 @@ class _SectorCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'SECTOR ${sector.sectorNumber}',
+                    l.sectorNumber(sector.sectorNumber),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -229,7 +234,7 @@ class _SectorCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    biome.id.displayName,
+                    l.biome(biome.id.name),
                     style: TextStyle(
                       fontSize: 13,
                       color: isLocked
@@ -240,7 +245,7 @@ class _SectorCard extends StatelessWidget {
                   if (isActive) ...[
                     const SizedBox(height: 4),
                     Text(
-                      '${sector.missionCount} missions',
+                      l.missionCount(sector.missionCount),
                       style: TextStyle(
                         fontSize: 11,
                         color: AppTheme.textSecondary.withValues(alpha: 0.5),
@@ -260,7 +265,7 @@ class _SectorCard extends StatelessWidget {
                       (m) => Padding(
                         padding: const EdgeInsets.only(bottom: 2),
                         child: Text(
-                          m.displayName,
+                          l.modifier(m.name),
                           style: TextStyle(
                             fontSize: 10,
                             color: AppTheme.accentColor.withValues(alpha: 0.7),
@@ -272,7 +277,7 @@ class _SectorCard extends StatelessWidget {
               )
             else if (isLocked)
               Text(
-                'LOCKED',
+                l.locked,
                 style: TextStyle(
                   fontSize: 10,
                   letterSpacing: 1,

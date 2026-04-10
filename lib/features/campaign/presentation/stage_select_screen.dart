@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/stage_id.dart';
 
 class StageSelectScreen extends ConsumerWidget {
@@ -13,9 +14,10 @@ class StageSelectScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     Responsive.init(context);
     final progress = ref.watch(campaignProgressProvider);
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('SELECT STAGE')),
+      appBar: AppBar(title: Text(l.selectStage)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -62,6 +64,7 @@ class _StageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final stageNum = stage.index + 1;
     Color accent;
     switch (stage) {
@@ -128,7 +131,7 @@ class _StageCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        stage.displayName.toUpperCase(),
+                        l.stageName(stageNum).toUpperCase(),
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
@@ -148,7 +151,7 @@ class _StageCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    stage.subtitle,
+                    l.stageSubtitle(stageNum),
                     style: TextStyle(
                       fontSize: 13,
                       color: AppTheme.textSecondary.withValues(alpha: 0.6),
@@ -157,7 +160,7 @@ class _StageCard extends StatelessWidget {
                   if (bestScore > 0) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Best: $bestScore',
+                      l.bestWithScore(bestScore),
                       style: TextStyle(
                         fontSize: 12,
                         color: accent.withValues(alpha: 0.7),

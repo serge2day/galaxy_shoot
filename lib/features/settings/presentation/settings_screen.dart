@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/fire_mode.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -11,18 +12,19 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(gameSettingsProvider);
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('SETTINGS')),
+      appBar: AppBar(title: Text(l.settings)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            _sectionLabel('Fire Mode'),
+            _sectionLabel(l.fireModeSection),
             const SizedBox(height: 8),
             _FireModeOption(
-              title: 'Auto Fire',
-              description: 'Ship fires automatically on cooldown.',
+              title: l.autoFire,
+              description: l.autoFireDesc,
               selected: settings.fireMode == FireMode.auto,
               onTap: () => ref
                   .read(gameSettingsProvider.notifier)
@@ -30,18 +32,18 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 10),
             _FireModeOption(
-              title: 'Manual Fire',
-              description: 'Use the fire button to shoot.',
+              title: l.manualFire,
+              description: l.manualFireDesc,
               selected: settings.fireMode == FireMode.manual,
               onTap: () => ref
                   .read(gameSettingsProvider.notifier)
                   .update(settings.copyWith(fireMode: FireMode.manual)),
             ),
             const SizedBox(height: 28),
-            _sectionLabel('Audio & Haptics'),
+            _sectionLabel(l.audioHapticsSection),
             const SizedBox(height: 12),
             _ToggleRow(
-              label: 'Music',
+              label: l.music,
               value: settings.musicEnabled,
               onChanged: (v) => ref
                   .read(gameSettingsProvider.notifier)
@@ -49,14 +51,14 @@ class SettingsScreen extends ConsumerWidget {
             ),
             if (settings.musicEnabled)
               _VolumeSlider(
-                label: 'Music Volume',
+                label: l.musicVolume,
                 value: settings.musicVolume,
                 onChanged: (v) => ref
                     .read(gameSettingsProvider.notifier)
                     .update(settings.copyWith(musicVolume: v)),
               ),
             _ToggleRow(
-              label: 'Sound Effects',
+              label: l.soundEffects,
               value: settings.sfxEnabled,
               onChanged: (v) => ref
                   .read(gameSettingsProvider.notifier)
@@ -64,29 +66,29 @@ class SettingsScreen extends ConsumerWidget {
             ),
             if (settings.sfxEnabled)
               _VolumeSlider(
-                label: 'SFX Volume',
+                label: l.sfxVolume,
                 value: settings.sfxVolume,
                 onChanged: (v) => ref
                     .read(gameSettingsProvider.notifier)
                     .update(settings.copyWith(sfxVolume: v)),
               ),
             _ToggleRow(
-              label: 'Haptics',
+              label: l.haptics,
               value: settings.hapticsEnabled,
               onChanged: (v) => ref
                   .read(gameSettingsProvider.notifier)
                   .update(settings.copyWith(hapticsEnabled: v)),
             ),
             const SizedBox(height: 28),
-            _sectionLabel('Tutorial'),
+            _sectionLabel(l.tutorialSection),
             const SizedBox(height: 12),
             OutlinedButton(
               onPressed: () async {
                 await ref.read(campaignRepositoryProvider).resetTutorial();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Tutorial will show on next play.'),
+                    SnackBar(
+                      content: Text(l.tutorialWillShow),
                     ),
                   );
                 }
@@ -95,22 +97,22 @@ class SettingsScreen extends ConsumerWidget {
                 foregroundColor: AppTheme.primaryColor,
                 side: const BorderSide(color: AppTheme.primaryColor),
               ),
-              child: const Text('REPLAY TUTORIAL'),
+              child: Text(l.replayTutorial),
             ),
             const SizedBox(height: 28),
-            _sectionLabel('Data'),
+            _sectionLabel(l.dataSection),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () => _confirmReset(context, ref),
+              onPressed: () => _confirmReset(context, ref, l),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.dangerColor,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('RESET ALL PROGRESS'),
+              child: Text(l.resetAllProgress),
             ),
             const SizedBox(height: 8),
             Text(
-              'This will erase all credits, upgrades, ship unlocks, and stage progress.',
+              l.resetWarning,
               style: TextStyle(
                 fontSize: 12,
                 color: AppTheme.textSecondary.withValues(alpha: 0.5),
@@ -134,7 +136,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _confirmReset(BuildContext context, WidgetRef ref) {
+  void _confirmReset(BuildContext context, WidgetRef ref, AppLocalizations l) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -143,20 +145,20 @@ class SettingsScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: AppTheme.dangerColor.withValues(alpha: 0.4)),
         ),
-        title: const Text(
-          'Reset Progress?',
-          style: TextStyle(color: AppTheme.dangerColor),
+        title: Text(
+          l.resetDialogTitle,
+          style: const TextStyle(color: AppTheme.dangerColor),
         ),
-        content: const Text(
-          'All credits, upgrades, ship unlocks, and stage progress will be permanently erased.',
-          style: TextStyle(color: AppTheme.textSecondary),
+        content: Text(
+          l.resetDialogBody,
+          style: const TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: AppTheme.textSecondary),
+            child: Text(
+              l.cancel,
+              style: const TextStyle(color: AppTheme.textSecondary),
             ),
           ),
           TextButton(
@@ -165,13 +167,13 @@ class SettingsScreen extends ConsumerWidget {
               await ref.read(resetProgressProvider)();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Progress reset.')),
+                  SnackBar(content: Text(l.progressReset)),
                 );
               }
             },
-            child: const Text(
-              'RESET',
-              style: TextStyle(color: AppTheme.dangerColor),
+            child: Text(
+              l.reset,
+              style: const TextStyle(color: AppTheme.dangerColor),
             ),
           ),
         ],
@@ -307,7 +309,7 @@ class _VolumeSlider extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 90,
+            width: 110,
             child: Text(
               label,
               style: TextStyle(

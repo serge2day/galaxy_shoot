@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../core/services/game_audio.dart';
+import '../l10n/app_localizations.dart';
 import 'routes.dart';
 import 'theme/app_theme.dart';
 
@@ -54,6 +56,13 @@ class _GalaxyShooterAppState extends State<GalaxyShooterApp>
       title: 'STARVANE',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       initialRoute: AppRoutes.home,
       routes: AppRoutes.routes,
     );

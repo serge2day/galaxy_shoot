@@ -6,7 +6,6 @@ import '../core/services/game_audio.dart';
 import '../features/campaign/domain/stage_id.dart';
 import '../features/campaign/presentation/stage_select_screen.dart';
 import '../features/hangar/domain/resolved_ship_stats.dart';
-import '../features/hangar/domain/ship_definition.dart';
 import '../features/progression/domain/difficulty_tier.dart';
 import '../features/progression/domain/reward_calculator.dart';
 import '../features/progression/presentation/difficulty_select_screen.dart';
@@ -14,6 +13,7 @@ import '../features/progression/presentation/run_summary_screen.dart';
 import '../features/session/domain/run_result.dart';
 import '../features/tutorial/presentation/tutorial_screen.dart';
 import '../game/galaxy_game.dart';
+import '../l10n/app_localizations.dart';
 import 'providers.dart';
 import 'routes.dart';
 import 'theme/app_theme.dart';
@@ -135,14 +135,12 @@ class _GamePageState extends ConsumerState<GamePage> {
           .clearStage(_stageId.name, claimedResult.score);
     }
 
-    final shipDef = ShipCatalog.getById(_game!.shipId);
-
     setState(() {
       _summaryData = RunSummaryData(
         result: claimedResult,
         rewards: rewards,
         difficulty: _difficulty,
-        shipName: shipDef.displayName,
+        shipId: _game!.shipId,
         previousBestScore: previousBest,
         newBestScore: ref.read(bestScoreProvider),
         stageId: _stageId,
@@ -285,9 +283,9 @@ class _GamePageState extends ConsumerState<GamePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'PAUSED',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).paused,
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.primaryColor,
@@ -299,7 +297,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _startResumeCountdown,
-                    child: const Text('RESUME'),
+                    child: Text(AppLocalizations.of(context).resume),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -315,15 +313,15 @@ class _GamePageState extends ConsumerState<GamePage> {
                       side: const BorderSide(color: AppTheme.primaryColor),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text('RESTART'),
+                    child: Text(AppLocalizations.of(context).restart),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: _goHome,
-                  child: const Text(
-                    'HOME',
-                    style: TextStyle(
+                  child: Text(
+                    AppLocalizations.of(context).home,
+                    style: const TextStyle(
                       color: AppTheme.dangerColor,
                       letterSpacing: 1,
                     ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../progression/domain/upgrade_definition.dart';
 import '../domain/ship_definition.dart';
 
@@ -18,6 +19,7 @@ class HangarScreen extends ConsumerWidget {
     final wallet = ref.watch(walletProvider);
     final upgradeState = ref.watch(upgradeStateProvider);
     final selectedShip = ShipCatalog.getById(selectedId);
+    final l = AppLocalizations.of(context);
 
     return PopScope(
       canPop: false,
@@ -43,9 +45,9 @@ class HangarScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text(
-            'HANGAR',
-            style: TextStyle(fontSize: 22, letterSpacing: 2),
+          title: Text(
+            l.hangar,
+            style: const TextStyle(fontSize: 22, letterSpacing: 2),
           ),
           actions: [
             Padding(
@@ -67,11 +69,11 @@ class HangarScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           children: [
             // Large hero ship display
-            _HeroShipDisplay(ship: selectedShip),
+            _HeroShipDisplay(ship: selectedShip, l: l),
             const SizedBox(height: 14),
-            const Text(
-              'SHIP SELECTION',
-              style: TextStyle(
+            Text(
+              l.shipSelection,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
@@ -95,6 +97,7 @@ class HangarScreen extends ConsumerWidget {
                     isUnlocked: isUnlocked,
                     isSelected: isSelected,
                     credits: wallet.credits,
+                    l: l,
                     onSelect: () =>
                         ref.read(selectedShipProvider.notifier).select(ship.id),
                     onUnlock: () async {
@@ -112,9 +115,9 @@ class HangarScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 14),
-            const Text(
-              'UPGRADES',
-              style: TextStyle(
+            Text(
+              l.upgrades,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
@@ -143,6 +146,7 @@ class HangarScreen extends ConsumerWidget {
                   cost: nextCost,
                   isMaxed: isMaxed,
                   canAfford: canAfford,
+                  l: l,
                   onBuy: () async {
                     final ok = await ref
                         .read(walletProvider.notifier)
@@ -172,8 +176,9 @@ class HangarScreen extends ConsumerWidget {
 // Large hero display taking ~40% of screen
 class _HeroShipDisplay extends StatelessWidget {
   final ShipDefinition ship;
+  final AppLocalizations l;
 
-  const _HeroShipDisplay({required this.ship});
+  const _HeroShipDisplay({required this.ship, required this.l});
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +219,7 @@ class _HeroShipDisplay extends StatelessWidget {
                 color: const Color(0xA0000000),
               ),
               child: Text(
-                '${ship.displayName.toUpperCase()} - ${ship.description}',
+                '${l.shipName(ship.id).toUpperCase()} - ${l.shipDesc(ship.id)}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
@@ -236,6 +241,7 @@ class _ShipCard extends StatelessWidget {
   final bool isUnlocked;
   final bool isSelected;
   final int credits;
+  final AppLocalizations l;
   final VoidCallback onSelect;
   final VoidCallback onUnlock;
 
@@ -244,6 +250,7 @@ class _ShipCard extends StatelessWidget {
     required this.isUnlocked,
     required this.isSelected,
     required this.credits,
+    required this.l,
     required this.onSelect,
     required this.onUnlock,
   });
@@ -274,7 +281,7 @@ class _ShipCard extends StatelessWidget {
           children: [
             // Ship name
             Text(
-              ship.displayName.toUpperCase(),
+              l.shipName(ship.id).toUpperCase(),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -299,11 +306,11 @@ class _ShipCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             // Stats - compact rows
-            _statRow('HP', ship.baseStats.maxHp.toString()),
-            _statRow('SPEED', (ship.baseStats.speed / 10).round().toString()),
-            _statRow('DAMAGE', ship.baseStats.bulletDamage.toString()),
+            _statRow(l.statHp, ship.baseStats.maxHp.toString()),
+            _statRow(l.statSpeed, (ship.baseStats.speed / 10).round().toString()),
+            _statRow(l.statDamage, ship.baseStats.bulletDamage.toString()),
             _statRow(
-              'FIRE RATE',
+              l.statFireRate,
               ((1 / ship.baseStats.fireCooldown) * 10).round().toString(),
             ),
             const SizedBox(height: 4),
@@ -323,8 +330,8 @@ class _ShipCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(5),
           color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
         ),
-        child: const Text(
-          'ACTIVE',
+        child: Text(
+          l.active,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 10,
@@ -342,8 +349,8 @@ class _ShipCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(5),
           color: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
         ),
-        child: const Text(
-          'UNLOCKED',
+        child: Text(
+          l.unlockedLabel,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 10,
@@ -363,7 +370,7 @@ class _ShipCard extends StatelessWidget {
             : Colors.white10,
       ),
       child: Text(
-        'UNLOCK (${ship.unlockCost} CR)',
+        l.unlockCost(ship.unlockCost),
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 9,
@@ -404,6 +411,7 @@ class _UpgradeCell extends StatelessWidget {
   final int cost;
   final bool isMaxed;
   final bool canAfford;
+  final AppLocalizations l;
   final VoidCallback onBuy;
 
   const _UpgradeCell({
@@ -412,6 +420,7 @@ class _UpgradeCell extends StatelessWidget {
     required this.cost,
     required this.isMaxed,
     required this.canAfford,
+    required this.l,
     required this.onBuy,
   });
 
@@ -435,7 +444,7 @@ class _UpgradeCell extends StatelessWidget {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    def.type.displayName,
+                    l.upgradeName(def.type.name),
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -444,8 +453,8 @@ class _UpgradeCell extends StatelessWidget {
                   ),
                 ),
                 if (isMaxed)
-                  const Text(
-                    'MAX',
+                  Text(
+                    l.maxLabel,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
